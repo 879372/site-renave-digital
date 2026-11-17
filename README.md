@@ -18,3 +18,7 @@ Abra http://localhost:4173 no navegador.
 - `dist/simbolo.svg`: símbolo da marca.
 
 O formulário prepara uma mensagem para atendimento pelo WhatsApp. O envio deve ser confirmado pelo visitante no WhatsApp.
+
+## Publicação na Vercel
+
+O arquivo `vercel.json` define `dist` como diretório de publicação. A raiz do projeto deve ser a raiz deste repositório. O site é estático e não precisa de comando de build.
