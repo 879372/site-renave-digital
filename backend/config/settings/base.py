@@ -63,6 +63,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "core.middleware.RequestIDMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -92,17 +93,39 @@ TEMPLATES = [
     }
 ]
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
+
+def _database_from_url(url: str) -> dict:
+    """Aceita DATABASE_URL (padrão do Railway/Heroku): postgresql://user:senha@host:porta/banco"""
+    from urllib.parse import unquote, urlparse
+
+    parts = urlparse(url)
+    return {
+        "NAME": unquote(parts.path.lstrip("/")),
+        "USER": unquote(parts.username or ""),
+        "PASSWORD": unquote(parts.password or ""),
+        "HOST": parts.hostname or "",
+        "PORT": str(parts.port or 5432),
+    }
+
+
+_db = (
+    _database_from_url(env("DATABASE_URL"))
+    if env("DATABASE_URL")
+    else {
         "NAME": env("DATABASE_NAME", "renave"),
         "USER": env("DATABASE_USER", "renave"),
         "PASSWORD": env("DATABASE_PASSWORD", ""),
         "HOST": env("DATABASE_HOST", "localhost"),
         "PORT": env("DATABASE_PORT", "5432"),
+    }
+)
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        **_db,
         "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
-            "pool": {"min_size": 2, "max_size": int(env("DATABASE_POOL_MAX", "20"))},
+            "pool": {"min_size": 1, "max_size": int(env("DATABASE_POOL_MAX", "10"))},
         },
     }
 }
@@ -137,6 +160,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 MEDIA_ROOT = BASE_DIR / "media"
 
 # --- API -------------------------------------------------------------------

@@ -5,6 +5,10 @@ DEBUG = False
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
+# O healthcheck do Railway chama por HTTP interno; não redirecionar.
+SECURE_REDIRECT_EXEMPT = [r"^api/health/"]
+# O Railway (e a Vercel, no rewrite de /api) entregam o host público no X-Forwarded-Host.
+USE_X_FORWARDED_HOST = env_bool("DJANGO_USE_X_FORWARDED_HOST", False)
 SECURE_HSTS_SECONDS = 63072000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True

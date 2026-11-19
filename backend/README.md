@@ -60,9 +60,35 @@ uv run pytest && uv run ruff check .
 
 Arquitetura e decisões: [docs/arquitetura.md](docs/arquitetura.md). Provedores: [docs/integracoes.md](docs/integracoes.md).
 
-## Produção
+## Deploy no Railway
 
-- `DJANGO_SETTINGS_MODULE=config.settings.prod`, HTTPS no proxy.
-- Variáveis: `DJANGO_SECRET_KEY`, `VAULT_MASTER_KEY` (guarde com cuidado: sem ela os certificados ficam ilegíveis), `DATABASE_*`, `REDIS_URL`, `RESEND_API_KEY`, chaves dos provedores e `SENTRY_DSN`.
-- `DJANGO_ALLOWED_HOSTS=app.renavedigital.kaibez.com.br`, `CORS_ALLOWED_ORIGINS=https://app.renavedigital.kaibez.com.br`, `PUBLIC_API_URL=https://app.renavedigital.kaibez.com.br`.
-- `gunicorn config.wsgi -w 4 --timeout 60` + workers Celery.
+O projeto já vem com `Dockerfile`, `railway.json` (API) e `railway.worker.json` (Celery).
+
+1. **Novo projeto** no Railway → *Deploy from GitHub repo* → `api-renave-digital`. Esse primeiro serviço é a API (usa `railway.json`).
+2. **Adicione os bancos:** *New* → *Database* → **PostgreSQL** e **Redis**.
+3. **Variáveis da API** (aba *Variables*):
+
+   | Variável | Valor |
+   |---|---|
+   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+   | `REDIS_URL` | `${{Redis.REDIS_URL}}` |
+   | `DJANGO_SECRET_KEY` | valor aleatório longo |
+   | `VAULT_MASTER_KEY` | gere com o comando da seção "Rodar localmente" e **guarde uma cópia em local seguro** |
+   | `DJANGO_ALLOWED_HOSTS` | domínio público do serviço no Railway (ex.: `api-renave-digital-production.up.railway.app`) |
+   | `CORS_ALLOWED_ORIGINS` | `https://app.renavedigital.kaibez.com.br` |
+   | `PUBLIC_API_URL` | `https://app.renavedigital.kaibez.com.br` |
+   | `DJANGO_ADMIN_URL` | caminho secreto para o admin técnico do Django (ex.: `interno-8f3k2/`) |
+   | `RESEND_API_KEY` | chave do Resend |
+   | `BUSCARS_API_KEY`, `BUSCARS_WEBHOOK_SECRET` | painel BusCars |
+   | `CARVEN_BASE_URL`, `CARVEN_CLIENT_ID`, `CARVEN_CLIENT_SECRET` | Carven (produção: `https://www.carven.com.br`) |
+   | `GERANET_API_KEY`, `GERANET_AMBIENTE` | Geranet (`1` produção, `2` homologação) |
+   | `SENTRY_DSN` | opcional |
+
+4. Em *Settings → Networking*, gere o domínio público da API.
+5. **Worker:** *New* → *GitHub repo* → o mesmo repositório. Em *Settings → Config-as-code*, aponte para `railway.worker.json`. Copie as mesmas variáveis (no Railway dá para referenciar as da API) — o worker não precisa de domínio.
+6. Cada deploy da API roda `scripts/release.sh` (migrações + catálogo inicial) antes de subir. O healthcheck é `/api/health/live`; `/api/health/ready` também verifica banco e Redis.
+7. Crie o primeiro administrador: no serviço da API, *⋯ → Shell* (ou `railway run`) e `python manage.py createsuperuser`.
+
+O app (Vercel) encaminha `https://app.renavedigital.kaibez.com.br/api/*` para o domínio da API no Railway, então o navegador fala só com o domínio do app.
+
+Webhook de consultas para cadastrar no provedor: `https://app.renavedigital.kaibez.com.br/api/hooks/consultas`.

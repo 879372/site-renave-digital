@@ -139,11 +139,11 @@ CATALOG = [
 
 
 class Command(BaseCommand):
-    help = "Cria/atualiza os produtos de consulta padrão (ativos)."
+    help = "Cria os produtos de consulta padrão que ainda não existem (não altera os já cadastrados)."
 
     def handle(self, *args, **options):
         for sku, name, desc, cat, inp, price, featured, order, items in CATALOG:
-            Product.objects.update_or_create(
+            Product.objects.get_or_create(
                 sku=sku,
                 defaults=dict(
                     code=slugify(name),
@@ -158,4 +158,4 @@ class Command(BaseCommand):
                     is_active=True,
                 ),
             )
-        self.stdout.write(self.style.SUCCESS(f"{len(CATALOG)} produtos cadastrados."))
+        self.stdout.write(self.style.SUCCESS("Catálogo verificado."))

@@ -12,3 +12,4 @@ BUSCARS = {**BUSCARS, "API_KEY": "bk_test", "WEBHOOK_SECRET": "whsec_test"}  # n
 CARVEN = {**CARVEN, "CLIENT_ID": "cid", "CLIENT_SECRET": "csecret"}  # noqa: F405
 GERANET = {**GERANET, "API_KEY": "gn_test"}  # noqa: F405
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+STORAGES = {**STORAGES, "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}  # noqa: F405
