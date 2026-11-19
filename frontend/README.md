@@ -34,6 +34,6 @@ Abre em http://localhost:5180. As chamadas para `/api` são repassadas para a AP
 
 O `vercel.json` publica `dist/` como SPA (todas as rotas, exceto `/api` e `/assets`, caem no `index.html`).
 
-A API precisa responder no mesmo domínio em `/api` (proxy reverso ou rewrite), porque a sessão usa cookie `SameSite=Strict`.
+A Vercel encaminha `/api/*` para a API em `https://api.renavedigital.kaibez.com.br` (Railway). Assim o navegador fala só com o domínio do app, o que a sessão por cookie `SameSite=Strict` exige.
 
 Antes de publicar, preencha os dados do controlador em `src/lib/legal.ts`.
