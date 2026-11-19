@@ -32,3 +32,6 @@ if settings.DEBUG:
         path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
         path("api/docs/", SpectacularRedocView.as_view(url_name="schema")),
     ]
+
+handler404 = "core.errors.not_found"
+handler500 = "core.errors.server_error"
