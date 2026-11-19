@@ -2,7 +2,6 @@ from django.db.models import Count, Q, Sum
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, NotFound
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 
@@ -17,7 +16,6 @@ from .serializers import ConsultaCreateSerializer, ConsultaDetailSerializer, Con
 
 class ProductViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
     pagination_class = None
     queryset = Product.objects.filter(is_active=True)
 

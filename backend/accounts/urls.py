@@ -9,6 +9,8 @@ urlpatterns = [
     path("refresh", views.RefreshView.as_view()),
     path("logout", views.LogoutView.as_view()),
     path("me", views.MeView.as_view()),
+    path("email/send", views.EmailCodeSendView.as_view()),
+    path("email/verify", views.EmailCodeVerifyView.as_view()),
     path("password/change", views.PasswordChangeView.as_view()),
     path("password/reset", views.PasswordResetView.as_view()),
     path("password/reset/confirm", views.PasswordResetConfirmView.as_view()),

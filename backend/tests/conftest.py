@@ -24,7 +24,9 @@ def _no_public_lookups(monkeypatch):
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(email="dono@loja.com.br", password="Senha-Forte-123", full_name="Dono da Loja", cpf="52998224725")
+    return User.objects.create_user(
+        email="dono@loja.com.br", password="Senha-Forte-123", full_name="Dono da Loja", cpf="52998224725", email_verified=True
+    )
 
 
 @pytest.fixture

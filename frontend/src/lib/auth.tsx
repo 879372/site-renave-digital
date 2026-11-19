@@ -10,6 +10,7 @@ export type User = {
   full_name: string;
   cpf: string;
   phone: string;
+  email_verified: boolean;
   totp_enabled: boolean;
   legal_version: string;
   marketing_opt_in: boolean;

@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import permissions, status
-from rest_framework.exceptions import APIException, AuthenticationFailed, PermissionDenied, Throttled
+from rest_framework.exceptions import APIException, AuthenticationFailed, PermissionDenied, Throttled, ValidationError
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
@@ -18,9 +18,10 @@ from core import email as mailer
 from organizations.models import Membership, Role
 from organizations.service import create_organization
 
-from . import lockout, totp
+from . import lockout, totp, verification
 from .models import User
 from .serializers import (
+    EmailCodeSerializer,
     LoginSerializer,
     MfaCodeSerializer,
     MfaDisableSerializer,
@@ -95,6 +96,7 @@ class RegisterView(AuthView):
             )
             record("account.registered", request=request, actor=user, organization=org, target=org)
             record("legal.accepted", request=request, actor=user, organization=org, version=settings.LEGAL_VERSION)
+            verification.send_code(user)
         return _session_response(user, request, status.HTTP_201_CREATED)
 
 
@@ -182,6 +184,8 @@ class LogoutView(AuthView):
 
 
 class MeView(APIView):
+    allow_unverified_email = True
+
     def get(self, request):
         memberships = (
             Membership.objects.filter(user=request.user, is_active=True, organization__is_active=True)
@@ -214,6 +218,8 @@ class MeView(APIView):
 
 
 class PasswordChangeView(APIView):
+    allow_unverified_email = True
+
     def post(self, request):
         serializer = PasswordChangeSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
@@ -260,8 +266,49 @@ class PasswordResetConfirmView(AuthView):
         password_validation.validate_password(serializer.validated_data["new_password"], user)
         user.set_password(serializer.validated_data["new_password"])
         user.save(update_fields=["password", "password_changed_at"])
+        verification.mark_verified(user)  # o link chegou na caixa de entrada: o e-mail é dele
         lockout.reset(user.email)
         record("auth.password_reset", request=request, actor=user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EmailCodeSendView(APIView):
+    """Envia (ou reenvia) o código de confirmação. Respeita um intervalo mínimo entre envios."""
+
+    allow_unverified_email = True
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        user = request.user
+        if user.email_verified:
+            return Response({"verified": True, "sent": False, "retry_in": 0})
+        wait = verification.send_code(user)
+        if not wait:
+            record("auth.email_code_sent", request=request)
+        return Response({"verified": False, "sent": not wait, "retry_in": wait or verification.RESEND_COOLDOWN})
+
+
+class EmailCodeVerifyView(APIView):
+    allow_unverified_email = True
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        user = request.user
+        if user.email_verified:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = EmailCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = verification.check_code(user, serializer.validated_data["code"])
+        if result == "expired":
+            record("auth.email_verify_failed", request=request, reason="expired")
+            raise ValidationError({"code": ["Este código expirou. Peça um novo código."]})
+        if result == "invalid":
+            record("auth.email_verify_failed", request=request, reason="invalid")
+            raise ValidationError({"code": ["Código incorreto. Confira o e-mail e tente de novo."]})
+        verification.mark_verified(user)
+        record("auth.email_verified", request=request)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -312,6 +359,8 @@ class MfaDisableView(APIView):
 class AcceptLegalView(APIView):
     """Registra o aceite de uma nova versão dos Termos/Política."""
 
+    allow_unverified_email = True
+
     def post(self, request):
         request.user.terms_accepted_at = timezone.now()
         request.user.legal_version = settings.LEGAL_VERSION
@@ -322,6 +371,8 @@ class AcceptLegalView(APIView):
 
 class DataExportView(APIView):
     """LGPD art. 18 (II e V): acesso e portabilidade dos dados do titular."""
+
+    allow_unverified_email = True
 
     def get(self, request):
         from audit.models import AuditEvent
@@ -377,6 +428,8 @@ class DataExportView(APIView):
 class AccountDeleteView(APIView):
     """LGPD art. 18 (VI): eliminação. Dados com obrigação legal de guarda (fiscais, RENAVE,
     auditoria) são mantidos pelo prazo legal, desvinculados da pessoa."""
+
+    allow_unverified_email = True
 
     def post(self, request):
         from .serializers import AccountDeleteSerializer

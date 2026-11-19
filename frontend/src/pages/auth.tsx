@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, ShieldCheck } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import clsx from "clsx";
+import { CheckCircle2, MailCheck, RotateCw, ShieldCheck } from "lucide-react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Link, useLocation, useSearch } from "wouter";
@@ -10,7 +11,7 @@ import { Logo } from "@/components/AppShell";
 import { CompanyFields } from "@/components/CompanyFields";
 import { LegalFooter } from "@/components/LegalFooter";
 import { Button, Field, Input } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { maskDocument, maskPhone, onlyDigits } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
@@ -384,5 +385,187 @@ export function InvitePage() {
         Aceitar e continuar
       </Button>
     </div>
+  );
+}
+
+export const VERIFY_CODE_KEY = "rd.verify-code";
+
+function readPendingCode(search: string): string {
+  const fromUrl = new URLSearchParams(search).get("codigo") ?? "";
+  let fromStorage = "";
+  try {
+    fromStorage = sessionStorage.getItem(VERIFY_CODE_KEY) ?? "";
+    sessionStorage.removeItem(VERIFY_CODE_KEY);
+  } catch {
+    /* sem storage */
+  }
+  const code = onlyDigits(fromUrl || fromStorage).slice(0, 6);
+  return code.length === 6 ? code : "";
+}
+
+/** Campo de código: um input só (cola, preenchimento automático do celular), desenhado como 6 caixas. */
+function CodeInput({ value, onChange, invalid, disabled }: { value: string; onChange: (v: string) => void; invalid?: boolean; disabled?: boolean }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        id="email-code"
+        value={value}
+        onChange={(e) => onChange(onlyDigits(e.target.value).slice(0, 6))}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        pattern="\d{6}"
+        maxLength={6}
+        autoFocus
+        disabled={disabled}
+        aria-invalid={invalid || undefined}
+        aria-describedby="email-code-hint"
+        className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0"
+      />
+      <div className="grid grid-cols-6 gap-2 sm:gap-3" aria-hidden>
+        {Array.from({ length: 6 }, (_, i) => {
+          const active = focused && (i === value.length || (i === 5 && value.length === 6));
+          return (
+            <div
+              key={i}
+              className={clsx(
+                "grid h-14 place-items-center rounded-lg border bg-white font-display text-2xl font-bold transition sm:h-16 sm:text-3xl",
+                invalid ? "border-red bg-red-50 text-red" : active ? "border-blue ring-2 ring-blue/25" : value[i] ? "border-navy/40" : "border-line",
+              )}
+            >
+              {value[i] ?? (active ? <span className="h-7 w-0.5 animate-pulse bg-blue" /> : "")}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function VerifyEmailPage() {
+  const { user, reload, signOut } = useAuth();
+  const search = useSearch();
+  const [, navigate] = useLocation();
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [wait, setWait] = useState(0);
+  const [sentAt, setSentAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
+
+  const verify = useCallback(
+    async (value: string) => {
+      setVerifying(true);
+      setError("");
+      try {
+        await api("/auth/email/verify", { body: { code: value } });
+        toast.success("E-mail confirmado. Boas-vindas à RENAVE DIGITAL!");
+        navigate("/", { replace: true });
+        await reload();
+      } catch (e) {
+        if (e instanceof ApiError && e.fieldError("code")) {
+          setError(e.fieldError("code")!);
+          setCode("");
+        } else handleApiError(e);
+      } finally {
+        setVerifying(false);
+      }
+    },
+    [navigate, reload],
+  );
+
+  const send = useCallback(async (manual: boolean) => {
+    setSending(true);
+    try {
+      const r = await api<{ verified: boolean; sent: boolean; retry_in: number }>("/auth/email/send", { method: "POST" });
+      setWait(r.retry_in);
+      if (r.sent) {
+        setSentAt(Date.now());
+        if (manual) {
+          setError("");
+          setCode("");
+          toast.success("Enviamos um novo código.");
+        }
+      }
+    } catch (e) {
+      if (manual) handleApiError(e);
+    } finally {
+      setSending(false);
+    }
+  }, []);
+
+  // Veio pelo link do e-mail: confirma direto. Senão, garante que um código foi enviado
+  // (logo após o cadastro o servidor já enviou e só devolve o tempo de espera).
+  useEffect(() => {
+    const pending = readPendingCode(search);
+    if (pending) {
+      setCode(pending);
+      void verify(pending);
+    } else void send(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const change = (value: string) => {
+    setCode(value);
+    if (error) setError("");
+    if (value.length === 6 && !verifying) void verify(value);
+  };
+
+  return (
+    <AuthLayout
+      title="Confirme seu e-mail"
+      subtitle={
+        <>
+          Enviamos um código de 6 dígitos para <strong className="break-all text-ink">{user?.email}</strong>. Digite-o abaixo para liberar sua conta.
+        </>
+      }
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (code.length === 6) void verify(code);
+        }}
+        className="space-y-5"
+      >
+        <div>
+          <label htmlFor="email-code" className="mb-2 block text-sm font-semibold">
+            Código de verificação
+          </label>
+          <CodeInput value={code} onChange={change} invalid={!!error} disabled={verifying} />
+          <p id="email-code-hint" className={clsx("mt-2 text-sm", error ? "font-medium text-red" : "text-muted")} role={error ? "alert" : undefined}>
+            {error || "O código vale por 30 minutos. Confira também a caixa de spam e promoções."}
+          </p>
+        </div>
+        <Button type="submit" className="w-full" loading={verifying} disabled={code.length !== 6}>
+          Confirmar e-mail
+        </Button>
+      </form>
+
+      <div className="mt-6 flex items-center justify-between gap-3 rounded-lg bg-pale p-4 text-sm">
+        <span className="flex items-center gap-2 text-muted">
+          <MailCheck className="size-4 shrink-0 text-blue" aria-hidden />
+          {sentAt ? "Código enviado agora há pouco." : "Não recebeu o código?"}
+        </span>
+        <Button type="button" variant="ghost" size="sm" onClick={() => send(true)} loading={sending} disabled={wait > 0}>
+          <RotateCw className="size-4" aria-hidden />
+          {wait > 0 ? `Reenviar em ${wait}s` : "Reenviar código"}
+        </Button>
+      </div>
+
+      <p className="mt-6 text-center text-sm text-muted">
+        E-mail errado?{" "}
+        <button type="button" onClick={() => signOut()} className="font-semibold text-blue hover:underline">
+          Sair e entrar com outra conta
+        </button>
+      </p>
+    </AuthLayout>
   );
 }

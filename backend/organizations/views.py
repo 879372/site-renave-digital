@@ -11,6 +11,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.verification import mark_verified
 from audit.service import record
 from core import email as mailer
 from core.documents import is_valid_cnpj, normalize_cnpj
@@ -133,6 +134,8 @@ class InvitationViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.D
 class AcceptInvitationView(APIView):
     """O usuário autenticado aceita um convite enviado para o próprio e-mail."""
 
+    allow_unverified_email = True  # o convite chegou na caixa de entrada: aceitar confirma o e-mail
+
     def post(self, request):
         token = str(request.data.get("token", ""))
         invitation = (
@@ -153,6 +156,7 @@ class AcceptInvitationView(APIView):
                 pass
             invitation.accepted_at = timezone.now()
             invitation.save(update_fields=["accepted_at"])
+            mark_verified(request.user)
         record("member.joined", request=request, organization=invitation.organization, target=invitation)
         return Response({"organization": str(invitation.organization.public_id)}, status=status.HTTP_201_CREATED)
 

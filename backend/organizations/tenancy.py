@@ -9,6 +9,7 @@ import uuid
 from rest_framework import permissions
 from rest_framework.exceptions import NotFound, PermissionDenied
 
+from accounts.verification import EmailUnverified
 from core.context import organization_id_var, user_id_var
 
 from .models import Membership
@@ -20,6 +21,8 @@ def resolve_membership(request) -> Membership:
     cached = getattr(request, "_membership", None)
     if cached is not None:
         return cached
+    if not request.user.email_verified:
+        raise EmailUnverified()
     raw = request.META.get(HEADER, "")
     try:
         org_id = uuid.UUID(raw)

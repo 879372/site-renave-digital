@@ -144,3 +144,7 @@ class AccountDeleteSerializer(serializers.Serializer):
         if value.strip().upper() != "EXCLUIR":
             raise serializers.ValidationError("Digite EXCLUIR para confirmar.")
         return value
+
+
+class EmailCodeSerializer(serializers.Serializer):
+    code = serializers.RegexField(r"^\s*\d{6}\s*$", error_messages={"invalid": "Digite os 6 números do código."})

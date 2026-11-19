@@ -80,7 +80,7 @@ def test_excluir_conta_anonimiza(api, user, org):
 
 
 def test_proprietario_com_equipe_nao_exclui(api, user, org):
-    other = User.objects.create_user(email="op@x.com", password="Senha-Forte-123", full_name="Op")
+    other = User.objects.create_user(email="op@x.com", password="Senha-Forte-123", full_name="Op", email_verified=True)
     Membership.objects.create(user=other, organization=org, role="operator")
     r = api.post("/api/auth/me/delete", {"password": "Senha-Forte-123", "confirmation": "EXCLUIR"}, format="json")
     assert r.status_code == 403

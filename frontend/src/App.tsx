@@ -7,6 +7,8 @@ import { Button, Modal, Spinner } from "./components/ui";
 import { api } from "./lib/api";
 import { useAuth } from "./lib/auth";
 
+const VERIFY_CODE_KEY = "rd.verify-code";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const page = <M extends Record<string, any>>(loader: () => Promise<M>, name: keyof M & string) =>
   lazy(() => loader().then((m) => ({ default: m[name] as ComponentType<any> })));
@@ -16,6 +18,7 @@ const Register = page(() => import("./pages/auth"), "RegisterPage");
 const Forgot = page(() => import("./pages/auth"), "ForgotPage");
 const Reset = page(() => import("./pages/auth"), "ResetPage");
 const Invite = page(() => import("./pages/auth"), "InvitePage");
+const VerifyEmail = page(() => import("./pages/auth"), "VerifyEmailPage");
 const Dashboard = page(() => import("./pages/dashboard"), "DashboardPage");
 const Consultas = page(() => import("./pages/consultas"), "ConsultasPage");
 const ConsultaDetail = page(() => import("./pages/consultas"), "ConsultaDetailPage");
@@ -70,7 +73,7 @@ function LegalGate() {
 }
 
 export function App() {
-  const { status, organization } = useAuth();
+  const { status, organization, user } = useAuth();
   const [location] = useLocation();
 
   if (location === "/admin" || location.startsWith("/admin/")) {
@@ -90,6 +93,15 @@ export function App() {
   if (status === "loading") return <Spinner label="Abrindo sua sessão…" />;
 
   if (status === "anonymous") {
+    // Link de confirmação aberto sem estar logado: guarda o código para depois do login.
+    if (location === "/verificar-email") {
+      const codigo = new URLSearchParams(window.location.search).get("codigo");
+      try {
+        if (codigo) sessionStorage.setItem(VERIFY_CODE_KEY, codigo);
+      } catch {
+        /* sem storage */
+      }
+    }
     return (
       <Suspense fallback={<Spinner />}>
         <Switch>
@@ -98,8 +110,17 @@ export function App() {
           <Route path="/redefinir-senha" component={Reset} />
           <Route path="/convite" component={Invite} />
           <Route path="/entrar" component={Login} />
-          <Route>{location === "/" || PRIVATE_ROUTES.test(location) ? <Redirect to="/entrar" /> : <NotFoundPage homeLabel="Ir para o login" />}</Route>
+          <Route>{location === "/" || location === "/verificar-email" || PRIVATE_ROUTES.test(location) ? <Redirect to="/entrar" /> : <NotFoundPage homeLabel="Ir para o login" />}</Route>
         </Switch>
+      </Suspense>
+    );
+  }
+
+  // E-mail não confirmado: só a tela de confirmação (o convite também confirma, então segue liberado).
+  if (user && !user.email_verified) {
+    return (
+      <Suspense fallback={<Spinner />}>
+        {location.startsWith("/convite") ? <Invite /> : <VerifyEmail />}
       </Suspense>
     );
   }
@@ -139,6 +160,9 @@ export function App() {
           <Route path="/auditoria" component={Auditoria} />
           <Route path="/convite" component={Invite} />
           <Route path="/entrar">
+            <Redirect to="/" />
+          </Route>
+          <Route path="/verificar-email">
             <Redirect to="/" />
           </Route>
           <Route path="/cadastro">
