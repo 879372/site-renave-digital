@@ -1,0 +1,27 @@
+# Infra de desenvolvimento. Produção: Postgres/Redis gerenciados.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: renave
+      POSTGRES_USER: renave
+      POSTGRES_PASSWORD: renave_dev
+    ports:
+      - "5442:5432"
+    volumes:
+      - renave-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U renave"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6390:6379"
+    volumes:
+      - renave-redis:/data
+
+volumes:
+  renave-pg:
+  renave-redis:
