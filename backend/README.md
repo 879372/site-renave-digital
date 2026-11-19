@@ -62,9 +62,14 @@ Arquitetura e decisões: [docs/arquitetura.md](docs/arquitetura.md). Provedores:
 
 ## Deploy no Railway
 
-O projeto já vem com `Dockerfile`, `railway.json` (API) e `railway.worker.json` (Celery).
+Os dois serviços usam o mesmo `Dockerfile`; o que muda é a configuração de cada um no Railway (*Settings → Deploy*):
 
-1. **Novo projeto** no Railway → *Deploy from GitHub repo* → `api-renave-digital`. Esse primeiro serviço é a API (usa `railway.json`).
+| Serviço | Start command | Pre-deploy | Healthcheck |
+|---|---|---|---|
+| API | `sh scripts/start-web.sh` | `sh scripts/release.sh` | `/api/health/live` |
+| worker | `sh scripts/start-worker.sh` | — | — |
+
+1. **Novo projeto** no Railway → *Deploy from GitHub repo* → `api-renave-digital`. Esse primeiro serviço é a API.
 2. **Adicione os bancos:** *New* → *Database* → **PostgreSQL** e **Redis**.
 3. **Variáveis da API** (aba *Variables*):
 
@@ -85,7 +90,7 @@ O projeto já vem com `Dockerfile`, `railway.json` (API) e `railway.worker.json`
    | `SENTRY_DSN` | opcional |
 
 4. Em *Settings → Networking → Custom Domain*, adicione `api.renavedigital.kaibez.com.br` e crie no DNS (Registro.br, zona `kaibez.com.br`) o registro **CNAME** `api.renavedigital` apontando para o destino que o Railway mostrar.
-5. **Worker:** *New* → *GitHub repo* → o mesmo repositório. Em *Settings → Config-as-code*, aponte para `railway.worker.json`. Copie as mesmas variáveis (no Railway dá para referenciar as da API) — o worker não precisa de domínio.
+5. **Worker:** *New* → *GitHub repo* → o mesmo repositório, com o start command da tabela acima e as variáveis referenciando as da API (`${{api-renave-digital.NOME}}`). O worker não precisa de domínio.
 6. Cada deploy da API roda `scripts/release.sh` (migrações + catálogo inicial) antes de subir. O healthcheck é `/api/health/live`; `/api/health/ready` também verifica banco e Redis.
 7. Crie o primeiro administrador: no serviço da API, *⋯ → Shell* (ou `railway run`) e `python manage.py createsuperuser`.
 
