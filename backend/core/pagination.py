@@ -1,0 +1,16 @@
+from rest_framework.pagination import CursorPagination, PageNumberPagination
+
+
+class DefaultPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
+class CreatedCursorPagination(CursorPagination):
+    """Paginação estável e barata para listas grandes (histórico, ledger)."""
+
+    page_size = 25
+    page_size_query_param = "page_size"
+    max_page_size = 100
+    ordering = "-created_at"

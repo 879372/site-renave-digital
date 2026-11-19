@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://renavedigital.kaibez.com.br/sitemap.xml

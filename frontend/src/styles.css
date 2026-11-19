@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* Identidade visual do site RENAVE DIGITAL (dist/style.css). */
+@theme {
+  --color-navy: #0b1f5c;
+  --color-navy-700: #13297a;
+  --color-blue: #1d44d8;
+  --color-blue-50: #eef2fe;
+  --color-ink: #0e1a33;
+  --color-muted: #4d5a73;
+  --color-line: #d5dbe7;
+  --color-pale: #f3f5fa;
+  --color-yellow: #f2b705;
+  --color-yellow-50: #fff8e1;
+  --color-green: #0b7a4b;
+  --color-green-50: #e7f5ee;
+  --color-red: #c0262d;
+  --color-red-50: #fdecec;
+  --font-display: "Barlow", sans-serif;
+  --font-sans: "Public Sans", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-pale text-ink font-sans text-[15px] leading-relaxed;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight text-ink;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-yellow);
+    outline-offset: 2px;
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 1px;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}

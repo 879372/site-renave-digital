@@ -1,0 +1,51 @@
+[project]
+name = "renave-digital-backend"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "argon2-cffi>=25.1.0",
+    "celery>=5.7.0",
+    "cryptography>=50.0.2",
+    "django>=5.2,<5.3",
+    "django-cors-headers>=4.9.0",
+    "django-filter>=26.2",
+    "django-redis>=7.0.0",
+    "djangorestframework>=3.18.3",
+    "djangorestframework-simplejwt>=5.5.1",
+    "drf-spectacular>=0.30.0",
+    "gunicorn>=27.0.1",
+    "httpx>=0.28.1",
+    "psycopg[binary,pool]>=3.3.9",
+    "pyotp>=2.12.0",
+    "python-dotenv>=1.2.4",
+    "redis>=8.1.0",
+    "sentry-sdk>=2.75.0",
+]
+
+[dependency-groups]
+dev = [
+    "freezegun>=1.5.5",
+    "model-bakery>=1.25.0",
+    "pytest>=9.2.0",
+    "pytest-django>=4.14.0",
+    "respx>=0.23.1",
+    "ruff>=0.17.5",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["tests.py", "test_*.py"]
+addopts = "-q --reuse-db"
+
+[tool.ruff]
+line-length = 140
+target-version = "py313"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "S", "UP"]
+ignore = ["S101", "E501", "B904", "S311"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106", "S107"]
+"integrations/carven.py" = ["S105"]

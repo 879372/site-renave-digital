@@ -1,6 +1,18 @@
-# site-renave-digital
+# RENAVE DIGITAL
 
-Site institucional do RENAVE DIGITAL, desenvolvido com HTML, CSS e JavaScript.
+Plataforma de consultas veiculares, estoque RENAVE, comunicação de venda e emissão de NF-e, mais o site institucional.
+
+| Pasta | Conteúdo |
+|---|---|
+| `dist/` | Site institucional estático (Vercel) |
+| `backend/` | API Django + DRF ([arquitetura](docs/arquitetura.md), [integrações](docs/integracoes.md)) |
+| `frontend/` | Aplicação React + Vite |
+
+Para rodar a plataforma localmente, veja [docs/desenvolvimento.md](docs/desenvolvimento.md).
+
+## Site institucional
+
+Site desenvolvido com HTML, CSS e JavaScript.
 
 ## Executar localmente
 
