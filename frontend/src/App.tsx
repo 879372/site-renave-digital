@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, type ComponentType } from "react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 
 import { AppShell } from "./components/AppShell";
+import { NotFoundPage } from "./components/StatusScreen";
 import { Button, Modal, Spinner } from "./components/ui";
 import { api } from "./lib/api";
 import { useAuth } from "./lib/auth";
@@ -30,6 +31,9 @@ const Auditoria = page(() => import("./pages/auditoria"), "AuditoriaPage");
 const Terms = page(() => import("./pages/legal"), "TermsPage");
 const Admin = page(() => import("./admin/AdminApp"), "AdminApp");
 const Privacy = page(() => import("./pages/legal"), "PrivacyPage");
+
+/** Rotas que existem para quem está logado: sem sessão, mandam para o login em vez do 404. */
+const PRIVATE_ROUTES = /^\/(consultas|estoque|comunicacao-venda|notas|carteira|empresa|perfil|auditoria)(\/|$)/;
 
 function LegalGate() {
   const { user, legalVersion, reload } = useAuth();
@@ -94,9 +98,7 @@ export function App() {
           <Route path="/redefinir-senha" component={Reset} />
           <Route path="/convite" component={Invite} />
           <Route path="/entrar" component={Login} />
-          <Route>
-            <Redirect to="/entrar" />
-          </Route>
+          <Route>{location === "/" || PRIVATE_ROUTES.test(location) ? <Redirect to="/entrar" /> : <NotFoundPage homeLabel="Ir para o login" />}</Route>
         </Switch>
       </Suspense>
     );
@@ -143,9 +145,7 @@ export function App() {
             <Redirect to="/" />
           </Route>
           <Route>
-            <div className="py-20 text-center">
-              <h1 className="text-2xl font-bold">Página não encontrada</h1>
-            </div>
+            <NotFoundPage embedded />
           </Route>
         </Switch>
       </Suspense>

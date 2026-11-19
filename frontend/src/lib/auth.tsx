@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { api, refreshAccess, session } from "./api";
+import { connectivity, isConnectionError } from "./connectivity";
 
 export type User = {
   id: string;
@@ -75,10 +76,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
   }, [queryClient]);
 
+  // Sem rede ou sem servidor não dá para saber se a sessão é válida: fica em "loading"
+  // (a tela de conexão aparece por cima) e tenta de novo quando a conexão voltar.
+  const statusRef = useRef(status);
+  statusRef.current = status;
+  const bootstrap = useCallback(async () => {
+    const token = await refreshAccess();
+    await connectivity.settle();
+    if (token) {
+      try {
+        await loadMe();
+      } catch (e) {
+        if (!isConnectionError(e)) clear();
+      }
+    } else if (!connectivity.unavailable()) clear();
+  }, [clear, loadMe]);
+
   useEffect(() => {
     session.onExpired(clear);
-    refreshAccess().then((token) => (token ? loadMe().catch(clear) : clear()));
-  }, [clear, loadMe]);
+    void bootstrap();
+    return connectivity.onRecover(() => {
+      if (statusRef.current === "loading") void bootstrap();
+    });
+  }, [bootstrap, clear]);
 
   const value = useMemo<AuthState>(() => {
     const organization = organizations.find((o) => o.id === orgId) ?? null;

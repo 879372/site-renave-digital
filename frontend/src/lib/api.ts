@@ -3,7 +3,13 @@
  * - Access token só em memória (nunca localStorage).
  * - Refresh em cookie httpOnly; renovação automática única (single-flight) ao receber 401.
  * - Cabeçalho X-Organization com a empresa ativa.
+ * - Falha de rede ou 502/503/504 avisa o estado de conexão (tela de sem internet / servidor fora do ar)
+ *   e nunca derruba a sessão: sem servidor, não dá para saber se o login expirou.
  */
+
+import { connectivity } from "./connectivity";
+
+const GATEWAY_DOWN = new Set([502, 503, 504]);
 
 export class ApiError extends Error {
   status: number;
@@ -46,9 +52,43 @@ export const session = {
   },
 };
 
+/** fetch que reporta falhas de rede/gateway ao estado de conexão e converte erro de rede em ApiError(0). */
+export async function fetchApi(input: URL | string, init: RequestInit): Promise<Response> {
+  let response: Response;
+  try {
+    response = await fetch(input, init);
+  } catch {
+    connectivity.reportFailure();
+    const offline = !navigator.onLine;
+    throw new ApiError(0, {
+      error: {
+        code: offline ? "offline" : "unavailable",
+        message: offline ? "Você está sem internet. Verifique sua conexão." : "Não conseguimos falar com o servidor. Tente novamente em instantes.",
+      },
+    });
+  }
+  if (GATEWAY_DOWN.has(response.status)) connectivity.reportFailure();
+  else connectivity.reportSuccess();
+  return response;
+}
+
+/** Monta o ApiError de uma resposta não-ok (o corpo pode estar vazio ou não ser JSON). */
+export async function errorFrom(response: Response): Promise<ApiError> {
+  let payload: any = null;
+  try {
+    payload = await response.json();
+  } catch {
+    /* corpo vazio ou HTML do gateway */
+  }
+  if (!payload?.error && GATEWAY_DOWN.has(response.status)) {
+    payload = { error: { code: "unavailable", message: "O servidor está indisponível no momento. Tente novamente em instantes." } };
+  }
+  return new ApiError(response.status, payload);
+}
+
 export async function refreshAccess(): Promise<string | null> {
   if (!refreshing) {
-    refreshing = fetch("/api/auth/refresh", { method: "POST", credentials: "same-origin" })
+    refreshing = fetchApi("/api/auth/refresh", { method: "POST", credentials: "same-origin" })
       .then(async (r) => (r.ok ? ((await r.json()).access as string) : null))
       .catch(() => null)
       .then((token) => {
@@ -87,22 +127,15 @@ export async function api<T = any>(path: string, opts: Options = {}, retried = f
     body = JSON.stringify(opts.body);
   }
 
-  const response = await fetch(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: "same-origin" });
+  const response = await fetchApi(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: "same-origin" });
 
   if (response.status === 401 && opts.auth !== false && !retried) {
     const token = await refreshAccess();
     if (token) return api<T>(path, opts, true);
-    onSessionExpired();
+    await connectivity.settle();
+    if (!connectivity.unavailable()) onSessionExpired();
   }
-  if (!response.ok) {
-    let payload: any = null;
-    try {
-      payload = await response.json();
-    } catch {
-      /* corpo vazio */
-    }
-    throw new ApiError(response.status, payload);
-  }
+  if (!response.ok) throw await errorFrom(response);
   if (opts.raw) return response as unknown as T;
   if (response.status === 204) return undefined as T;
   return response.json();

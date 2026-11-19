@@ -1,5 +1,6 @@
 /** Cliente da API administrativa: sessão separada da do lojista (token e cookie próprios). */
-import { ApiError } from "@/lib/api";
+import { errorFrom, fetchApi } from "@/lib/api";
+import { connectivity } from "@/lib/connectivity";
 
 let accessToken: string | null = null;
 let refreshing: Promise<{ access: string; user: AdminUser } | null> | null = null;
@@ -18,7 +19,7 @@ export const adminSession = {
 
 export async function adminRefresh(): Promise<{ access: string; user: AdminUser } | null> {
   if (!refreshing) {
-    refreshing = fetch("/api/admin/auth/refresh", { method: "POST", credentials: "same-origin" })
+    refreshing = fetchApi("/api/admin/auth/refresh", { method: "POST", credentials: "same-origin" })
       .then(async (r) => (r.ok ? r.json() : null))
       .catch(() => null)
       .then((data) => {
@@ -46,20 +47,13 @@ export async function adminApi<T = any>(path: string, opts: Options = {}, retrie
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(opts.body);
   }
-  const response = await fetch(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: "same-origin" });
+  const response = await fetchApi(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: "same-origin" });
   if (response.status === 401 && opts.auth !== false && !retried) {
     if (await adminRefresh()) return adminApi<T>(path, opts, true);
-    onExpired();
+    await connectivity.settle();
+    if (!connectivity.unavailable()) onExpired();
   }
-  if (!response.ok) {
-    let payload: any = null;
-    try {
-      payload = await response.json();
-    } catch {
-      /* vazio */
-    }
-    throw new ApiError(response.status, payload);
-  }
+  if (!response.ok) throw await errorFrom(response);
   if (response.status === 204 || response.status === 202) return undefined as T;
   return response.json();
 }

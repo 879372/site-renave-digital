@@ -13,17 +13,22 @@ const VARIANTS: Record<Variant, string> = {
   yellow: "bg-yellow text-navy hover:brightness-95 shadow-sm",
 };
 
+/** Classes do botão, para links com aparência de botão (evita <a><button>). */
+export function buttonClass(variant: Variant = "primary", size: "sm" | "md" = "md", className?: string) {
+  return clsx(
+    "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+    size === "sm" ? "h-9 px-3 text-sm" : "h-11 px-5 text-[15px]",
+    VARIANTS[variant],
+    className,
+  );
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; loading?: boolean; size?: "sm" | "md" }>(
   ({ variant = "primary", loading, size = "md", className, children, disabled, ...props }, ref) => (
     <button
       ref={ref}
       disabled={disabled || loading}
-      className={clsx(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-        size === "sm" ? "h-9 px-3 text-sm" : "h-11 px-5 text-[15px]",
-        VARIANTS[variant],
-        className,
-      )}
+      className={buttonClass(variant, size, className)}
       {...props}
     >
       {loading && <Loader2 className="size-4 animate-spin" aria-hidden />}

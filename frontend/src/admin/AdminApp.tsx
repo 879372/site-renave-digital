@@ -21,8 +21,9 @@ import {
 } from "lucide-react";
 import { lazy, Suspense, useState, type ComponentType, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
-import { Link, Redirect, Route, Switch, useLocation } from "wouter";
+import { Link, Route, Switch, useLocation } from "wouter";
 
+import { NotFoundPage } from "@/components/StatusScreen";
 import { Button, Field, Input, Spinner } from "@/components/ui";
 import { handleApiError } from "@/lib/forms";
 
@@ -236,7 +237,7 @@ function Routes() {
         <Route path="/auditoria" component={Auditoria} />
         {user?.is_superuser && <Route path="/equipe" component={Equipe} />}
         <Route>
-          <Redirect to="/" />
+          <NotFoundPage embedded homeLabel="Ir para o painel" />
         </Route>
       </Switch>
     </Shell>

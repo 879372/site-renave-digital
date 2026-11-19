@@ -8,7 +8,21 @@ export default defineConfig({
   resolve: { alias: { "@": path.resolve(__dirname, "src") } },
   server: {
     port: 5180,
-    proxy: { "/api": { target: process.env.API_URL ?? "http://localhost:8010", changeOrigin: false } },
+    proxy: {
+      "/api": {
+        target: process.env.API_URL ?? "http://localhost:8010",
+        changeOrigin: false,
+        // API desligada: responde 502 como a Vercel faz em produção (o padrão do Vite seria 500).
+        configure: (proxy) => {
+          proxy.on("error", (_err, _req, res) => {
+            if ("writeHead" in res && !res.headersSent) {
+              res.writeHead(502, { "Content-Type": "text/plain" });
+              res.end("Bad Gateway");
+            }
+          });
+        },
+      },
+    },
   },
   build: {
     sourcemap: false,

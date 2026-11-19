@@ -1,5 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+
+import { connectivity } from "@/lib/connectivity";
 
 import { adminApi, adminRefresh, adminSession, type AdminUser } from "./api";
 
@@ -24,15 +26,24 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     qc.removeQueries({ queryKey: ["admin"] });
   }, [qc]);
 
+  const statusRef = useRef(status);
+  statusRef.current = status;
+  const bootstrap = useCallback(async () => {
+    const data = await adminRefresh();
+    await connectivity.settle();
+    if (data) {
+      setUser(data.user);
+      setStatus("authenticated");
+    } else if (!connectivity.unavailable()) clear();
+  }, [clear]);
+
   useEffect(() => {
     adminSession.onExpired(clear);
-    adminRefresh().then((data) => {
-      if (data) {
-        setUser(data.user);
-        setStatus("authenticated");
-      } else clear();
+    void bootstrap();
+    return connectivity.onRecover(() => {
+      if (statusRef.current === "loading") void bootstrap();
     });
-  }, [clear]);
+  }, [bootstrap, clear]);
 
   const value = useMemo<State>(
     () => ({
