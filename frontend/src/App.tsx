@@ -1,8 +1,10 @@
+import { Building2, LogOut, Plus } from "lucide-react";
 import { lazy, Suspense, useState, type ComponentType } from "react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 
 import { AppShell } from "./components/AppShell";
-import { NotFoundPage } from "./components/StatusScreen";
+import { AddCompanyModal } from "./components/AddCompanyModal";
+import { NotFoundPage, StatusScreen } from "./components/StatusScreen";
 import { Button, Modal, Spinner } from "./components/ui";
 import { api } from "./lib/api";
 import { useAuth } from "./lib/auth";
@@ -131,10 +133,7 @@ export function App() {
         <Switch>
           <Route path="/convite" component={Invite} />
           <Route>
-            <div className="mx-auto max-w-md p-10 text-center">
-              <h1 className="text-2xl font-bold">Nenhuma empresa vinculada</h1>
-              <p className="mt-2 text-muted">Peça ao responsável pela empresa um convite de acesso.</p>
-            </div>
+            <NoCompanyScreen />
           </Route>
         </Switch>
       </Suspense>
@@ -174,5 +173,42 @@ export function App() {
         </Switch>
       </Suspense>
     </AppShell>
+  );
+}
+
+/** Conta sem empresa (ex.: removida de todas, ou criada fora do cadastro): cadastra um CNPJ ou aguarda convite. */
+function NoCompanyScreen() {
+  const { user, signOut } = useAuth();
+  const [adding, setAdding] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  return (
+    <>
+      <StatusScreen
+        icon={Building2}
+        title="Cadastre sua empresa para começar"
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              loading={leaving}
+              onClick={async () => {
+                setLeaving(true);
+                await signOut();
+              }}
+            >
+              <LogOut className="size-4" /> Sair
+            </Button>
+            <Button onClick={() => setAdding(true)}>
+              <Plus className="size-4" /> Cadastrar empresa
+            </Button>
+          </>
+        }
+        footer={<>Se você trabalha em uma empresa que já usa a RENAVE DIGITAL, peça ao responsável um convite para {user?.email}.</>}
+      >
+        Sua conta ainda não está ligada a nenhuma empresa. Cadastre o CNPJ da sua revenda, concessionária ou escritório para consultar, operar o RENAVE e
+        emitir notas.
+      </StatusScreen>
+      <AddCompanyModal open={adding} onOpenChange={setAdding} />
+    </>
   );
 }
