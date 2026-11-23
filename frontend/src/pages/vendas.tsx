@@ -13,6 +13,7 @@ import { date, money, plate } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
 
 import type { VehicleRow } from "./veiculos";
+import { ask } from "@/components/confirm";
 
 type Pagamento = { method: string; method_display?: string; amount_cents: number; installments: number; first_due: string | null; bank: string; trade_in: string | null; trade_in_title?: string | null };
 
@@ -190,7 +191,7 @@ export function VendaDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={TONE[v.status]}>{v.status_display}</Badge>
             {operate && v.status === "proposta" && <Button size="sm" variant="secondary" onClick={() => setReserveOpen(true)}>Reservar com sinal</Button>}
-            {operate && open && <Button size="sm" onClick={() => confirm("Fechar a venda? O carro sai do estoque e os recebimentos vão para o financeiro.") && close.mutate()} loading={close.isPending}>Fechar venda</Button>}
+            {operate && open && <Button size="sm" onClick={() => void ask("Fechar a venda? O carro sai do estoque e os recebimentos vão para o financeiro.").then((ok) => ok && close.mutate())} loading={close.isPending}>Fechar venda</Button>}
             {operate && v.status !== "cancelada" && <Button size="sm" variant="ghost" onClick={() => setCancelOpen(true)}>Cancelar</Button>}
           </div>
         }

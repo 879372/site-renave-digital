@@ -3,6 +3,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Toaster } from "sonner";
 
+import { ConfirmHost } from "./components/confirm";
+
 import { App } from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ConnectionOverlay } from "./components/StatusScreen";
@@ -40,6 +42,7 @@ createRoot(document.getElementById("root")!).render(
       <ErrorBoundary>
         <AuthProvider>
           <App />
+          <ConfirmHost />
           <Toaster richColors position="top-right" closeButton />
         </AuthProvider>
       </ErrorBoundary>

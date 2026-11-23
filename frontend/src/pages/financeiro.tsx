@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { date, money } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
+import { ask } from "@/components/confirm";
 
 type Lanc = {
   id: string;
@@ -133,10 +134,10 @@ function Lancamentos({ kind }: { kind: "receber" | "pagar" }) {
                   {manage && (l.status === "aberto" || l.status === "vencido") && (
                     <>
                       <Button size="sm" variant="secondary" onClick={() => setPaying(l)}><Check className="size-4" /> {kind === "receber" ? "Receber" : "Pagar"}</Button>
-                      <button className="ml-2 text-xs text-muted hover:text-red" onClick={() => confirm("Cancelar este lançamento?") && act.mutate({ id: l.id, path: "cancelar" })}>Cancelar</button>
+                      <button className="ml-2 text-xs text-muted hover:text-red" onClick={() => void ask("Cancelar este lançamento?").then((ok) => ok && act.mutate({ id: l.id, path: "cancelar" }))}>Cancelar</button>
                     </>
                   )}
-                  {manage && l.status === "pago" && <button className="text-xs text-muted hover:text-ink" onClick={() => confirm("Estornar a baixa?") && act.mutate({ id: l.id, path: "estornar" })}>Estornar</button>}
+                  {manage && l.status === "pago" && <button className="text-xs text-muted hover:text-ink" onClick={() => void ask("Estornar a baixa?").then((ok) => ok && act.mutate({ id: l.id, path: "estornar" }))}>Estornar</button>}
                 </td>
               </tr>
             ))}

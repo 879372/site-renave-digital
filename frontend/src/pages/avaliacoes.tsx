@@ -13,6 +13,7 @@ import { date, money, plate } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
 
 import { FipePicker } from "./veiculos";
+import { ask } from "@/components/confirm";
 
 type Avaliacao = {
   id: string;
@@ -189,7 +190,7 @@ export function AvaliacaoPage() {
             <Card title="Decisão">
               <div className="flex flex-col gap-2">
                 {status !== "aprovada" && <Button type="button" variant="secondary" onClick={() => decide.mutate("approve")}>Aprovar com esta oferta</Button>}
-                {status === "aprovada" && <Button type="button" onClick={() => confirm(`Comprar por ${money(f.offer_cents)}? O carro entra no estoque e a compra vai para contas a pagar.`) && buy.mutate()} loading={buy.isPending}>Comprar e incluir no estoque</Button>}
+                {status === "aprovada" && <Button type="button" onClick={() => void ask(`Comprar por ${money(f.offer_cents)}? O carro entra no estoque e a compra vai para contas a pagar.`).then((ok) => ok && buy.mutate())} loading={buy.isPending}>Comprar e incluir no estoque</Button>}
                 {status !== "recusada" && <Button type="button" variant="ghost" onClick={() => decide.mutate("refuse")}>Recusar</Button>}
                 {status === "aprovada" && <p className="text-xs text-muted">Se for troca, use a avaliação aprovada como forma de pagamento na venda.</p>}
               </div>

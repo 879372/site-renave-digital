@@ -9,6 +9,7 @@ import { handleApiError } from "@/lib/forms";
 
 import { adminApi } from "../api";
 import { OrgCell, ResourceTable } from "../components";
+import { ask } from "@/components/confirm";
 
 const SUB_TONE: Record<string, "blue" | "green" | "yellow" | "red"> = { trialing: "blue", active: "green", past_due: "yellow", suspended: "red" };
 const INV_TONE: Record<string, "yellow" | "green" | "gray" | "red"> = { open: "yellow", paid: "green", overdue: "red", canceled: "gray" };
@@ -213,10 +214,10 @@ export function FaturasAdminPage() {
             cell: (i) =>
               (i.status === "open" || i.status === "overdue") && (
                 <div className="flex justify-end gap-1">
-                  <Button size="sm" onClick={() => confirm(`Confirmar o recebimento de ${money(i.total_cents)} de ${i.organization_name}?`) && act.mutate({ id: i.id, path: "mark-paid" })}>
+                  <Button size="sm" onClick={() => void ask(`Confirmar o recebimento de ${money(i.total_cents)} de ${i.organization_name}?`).then((ok) => ok && act.mutate({ id: i.id, path: "mark-paid" }))}>
                     <Check className="size-4" /> Paga
                   </Button>
-                  <Button size="sm" variant="ghost" aria-label="Cancelar fatura" onClick={() => confirm("Cancelar esta fatura?") && act.mutate({ id: i.id, path: "cancel" })}>
+                  <Button size="sm" variant="ghost" aria-label="Cancelar fatura" onClick={() => void ask("Cancelar esta fatura?").then((ok) => ok && act.mutate({ id: i.id, path: "cancel" }))}>
                     <X className="size-4 text-red" />
                   </Button>
                 </div>

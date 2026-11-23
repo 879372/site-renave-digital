@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { date, money, plate } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
+import { ask } from "@/components/confirm";
 
 export type VehicleRow = {
   id: string;
@@ -395,7 +396,7 @@ export function VeiculoDetailPage() {
   if (!v) return <Empty title="Veículo não encontrado" />;
   const manage = can("estoque.manage");
   const tabs: [string, string][] = [["resumo", "Resumo"], ["fotos", `Fotos (${v.photos.length})`], ["custos", `Custos (${v.costs.length})`], ["documentos", "Documentos"], ["renave", "RENAVE"]];
-  if (has("vitrine")) tabs.push(["anuncios", "Site e portais"]);
+  if (has("vitrine")) tabs.push(["site", "Site"]);
   return (
     <>
       <Link href="/veiculos" className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><ArrowLeft className="size-4" /> Veículos</Link>
@@ -407,7 +408,7 @@ export function VeiculoDetailPage() {
             <Badge tone={STATUS_TONE[v.status]}>{v.status_display}</Badge>
             {manage && v.status === "preparacao" && <Button size="sm" variant="secondary" onClick={() => status.mutate("disponivel")}>Liberar para venda</Button>}
             {manage && v.status === "disponivel" && <Button size="sm" variant="ghost" onClick={() => status.mutate("preparacao")}>Voltar para preparação</Button>}
-            {manage && v.ownership === "consignado" && ["disponivel", "preparacao"].includes(v.status) && <Button size="sm" variant="ghost" onClick={() => confirm("Devolver o carro ao dono?") && status.mutate("devolvido")}>Devolver ao dono</Button>}
+            {manage && v.ownership === "consignado" && ["disponivel", "preparacao"].includes(v.status) && <Button size="sm" variant="ghost" onClick={() => void ask("Devolver o carro ao dono?").then((ok) => ok && status.mutate("devolvido"))}>Devolver ao dono</Button>}
             {can("vendas.operate") && ["disponivel", "preparacao", "reservado"].includes(v.status) && <Link href={`/vendas/nova?veiculo=${v.id}`}><Button size="sm">Vender</Button></Link>}
             {manage && <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>Editar</Button>}
           </div>
@@ -419,7 +420,7 @@ export function VeiculoDetailPage() {
       {tab === "custos" && (has("custos") ? <Custos v={v} manage={manage} onChange={refresh} /> : <LockedPanel feature="custos" title="Custos por veículo" />)}
       {tab === "documentos" && <Documentos v={v} manage={manage} onChange={refresh} />}
       {tab === "renave" && <RenaveTab v={v} onChange={refresh} />}
-      {tab === "anuncios" && <Anuncios v={v} manage={manage} />}
+      {tab === "site" && <SiteTab v={v} manage={manage} />}
       <VehicleForm open={editing} onOpenChange={setEditing} vehicle={v} />
       {has("multiloja") && manage && <TransferBox v={v} orgId={organization?.id} />}
     </>
@@ -503,7 +504,7 @@ function Fotos({ v, manage, onChange }: { v: Vehicle; manage: boolean; onChange:
               {manage && (
                 <div className="absolute inset-x-0 bottom-0 flex justify-between bg-graphite/70 p-1.5 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
                   {i !== 0 ? <button className="text-xs text-white" onClick={() => cover.mutate(p.id)}>Usar como capa</button> : <span />}
-                  <button className="text-white" aria-label="Apagar foto" onClick={() => confirm("Apagar esta foto?") && remove.mutate(p.id)}><Trash2 className="size-4" /></button>
+                  <button className="text-white" aria-label="Apagar foto" onClick={() => void ask("Apagar esta foto?").then((ok) => ok && remove.mutate(p.id))}><Trash2 className="size-4" /></button>
                 </div>
               )}
             </div>
@@ -537,7 +538,7 @@ function Custos({ v, manage, onChange }: { v: Vehicle; manage: boolean; onChange
               <td className="px-5 py-3 text-muted">{c.supplier_name ?? "—"}</td>
               <td className="px-5 py-3 font-medium"><Money cents={c.amount_cents} /></td>
               <td className="px-5 py-3">{c.payable_status && <Badge tone={c.payable_status === "pago" ? "green" : c.payable_status === "vencido" ? "red" : "yellow"}>{c.payable_status}</Badge>}</td>
-              <td className="px-5 py-3 text-right">{manage && <button aria-label="Remover custo" className="text-muted hover:text-red" onClick={() => confirm("Remover este custo?") && remove.mutate(c.id)}><Trash2 className="size-4" /></button>}</td>
+              <td className="px-5 py-3 text-right">{manage && <button aria-label="Remover custo" className="text-muted hover:text-red" onClick={() => void ask("Remover este custo?").then((ok) => ok && remove.mutate(c.id))}><Trash2 className="size-4" /></button>}</td>
             </tr>
           ))}
         </Table>
@@ -588,7 +589,7 @@ function Documentos({ v, manage, onChange }: { v: Vehicle; manage: boolean; onCh
           {v.documents.map((d) => (
             <li key={d.id} className="flex items-center justify-between py-2.5 text-sm">
               <button className="text-left font-medium text-brand" onClick={() => download(d.url.replace(/^\/api/, ""), true)}>{d.name}</button>
-              <span className="flex items-center gap-3 text-muted">{d.kind_display} · {date(d.created_at)}{manage && <button aria-label="Remover" className="hover:text-red" onClick={() => confirm("Remover documento?") && remove.mutate(d.id)}><Trash2 className="size-4" /></button>}</span>
+              <span className="flex items-center gap-3 text-muted">{d.kind_display} · {date(d.created_at)}{manage && <button aria-label="Remover" className="hover:text-red" onClick={() => void ask("Remover documento?").then((ok) => ok && remove.mutate(d.id))}><Trash2 className="size-4" /></button>}</span>
             </li>
           ))}
         </ul>
@@ -642,27 +643,30 @@ function RenaveTab({ v, onChange }: { v: Vehicle; onChange: () => void }) {
   );
 }
 
-function Anuncios({ v, manage }: { v: Vehicle; manage: boolean }) {
+function SiteTab({ v, manage }: { v: Vehicle; manage: boolean }) {
   const qc = useQueryClient();
-  const list = useQuery({ queryKey: ["anuncios", v.id], queryFn: () => api<any[]>("/site/anuncios", { params: { vehicle: v.id } }) });
   const toggle = useMutation({
-    mutationFn: async (portal: string) => {
-      const existing = list.data?.find((a) => a.portal === portal);
-      if (existing) return api(`/site/anuncios/${existing.id}`, { method: "DELETE" });
-      return api("/site/anuncios", { body: { vehicle: v.id, portal } });
+    mutationFn: (published: boolean) => api(`/estoque/veiculos/${v.id}`, { method: "PATCH", body: { published } }),
+    onSuccess: (_, published) => {
+      toast.success(published ? "Publicado no site" : "Retirado do site");
+      qc.invalidateQueries({ queryKey: ["veiculo", v.id] });
+      qc.invalidateQueries({ queryKey: ["veiculos"] });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["anuncios", v.id] }),
     onError: (e) => handleApiError(e),
   });
-  const portals: [string, string][] = [["olx", "OLX"], ["webmotors", "Webmotors"], ["mercadolivre", "Mercado Livre"], ["icarros", "iCarros"], ["mobiauto", "Mobiauto"]];
+  const sellable = ["disponivel", "reservado"].includes(v.status);
   return (
-    <Card title="Site e portais" description="Escolha em quais portais o carro entra. Os portais leem o estoque pelo feed configurado em Site da loja.">
-      <p className="mb-4 text-sm">No site da loja: <strong>{v.published ? "publicado" : "não publicado"}</strong> (altere em Editar).</p>
-      <div className="flex flex-wrap gap-2">
-        {portals.map(([k, l]) => {
-          const on = list.data?.some((a) => a.portal === k);
-          return <button key={k} disabled={!manage} onClick={() => toggle.mutate(k)} className={clsx("rounded-lg border px-3 py-2 text-sm", on ? "border-brand bg-brand-50 text-brand" : "border-line text-muted hover:text-ink")}>{on ? "✓ " : ""}{l}</button>;
-        })}
+    <Card title="Site da loja" description="Carros publicados aparecem no site da loja e no feed de estoque (link em Site da loja).">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm">
+          Situação: <strong>{v.published ? "publicado" : "não publicado"}</strong>
+          {v.published && !sellable && <span className="block text-xs text-muted">Só aparece no site quando estiver disponível ou reservado.</span>}
+        </p>
+        {manage && (
+          <Button size="sm" variant={v.published ? "secondary" : "primary"} loading={toggle.isPending} onClick={() => toggle.mutate(!v.published)}>
+            {v.published ? "Retirar do site" : "Publicar no site"}
+          </Button>
+        )}
       </div>
     </Card>
   );
@@ -683,7 +687,7 @@ function TransferBox({ v, orgId }: { v: Vehicle; orgId?: string }) {
     <Card title="Transferir para outra loja" className="mt-6">
       <div className="flex flex-wrap gap-2">
         <Select value={target} onChange={(e) => setTarget(e.target.value)} className="w-64"><option value="">Escolha a loja</option>{others.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>
-        <Button variant="secondary" disabled={!target} loading={move.isPending} onClick={() => confirm("Transferir o veículo?") && move.mutate()}>Transferir</Button>
+        <Button variant="secondary" disabled={!target} loading={move.isPending} onClick={() => void ask("Transferir o veículo?").then((ok) => ok && move.mutate())}>Transferir</Button>
       </div>
     </Card>
   );

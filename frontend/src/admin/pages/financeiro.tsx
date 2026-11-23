@@ -9,6 +9,7 @@ import { handleApiError } from "@/lib/forms";
 
 import { adminApi } from "../api";
 import { DATE_FILTERS, OrgCell, ResourceTable } from "../components";
+import { ask } from "@/components/confirm";
 
 const TOPUP_TONE: Record<string, "yellow" | "green" | "gray" | "red"> = { pending: "yellow", paid: "green", expired: "gray", canceled: "red" };
 
@@ -53,10 +54,10 @@ export function RecargasPage() {
             cell: (t) =>
               t.status === "pending" && (
                 <div className="flex justify-end gap-1">
-                  <Button size="sm" onClick={() => confirm(`Confirmar o recebimento de ${money(t.amount_cents)} de ${t.organization?.name}?`) && act.mutate({ id: t.id, path: "confirm" })}>
+                  <Button size="sm" onClick={() => void ask(`Confirmar o recebimento de ${money(t.amount_cents)} de ${t.organization?.name}?`).then((ok) => ok && act.mutate({ id: t.id, path: "confirm" }))}>
                     <Check className="size-4" /> Confirmar
                   </Button>
-                  <Button size="sm" variant="ghost" aria-label="Cancelar recarga" onClick={() => confirm("Cancelar esta recarga?") && act.mutate({ id: t.id, path: "cancel" })}>
+                  <Button size="sm" variant="ghost" aria-label="Cancelar recarga" onClick={() => void ask("Cancelar esta recarga?").then((ok) => ok && act.mutate({ id: t.id, path: "cancel" }))}>
                     <X className="size-4 text-red" />
                   </Button>
                 </div>

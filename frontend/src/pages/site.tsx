@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { maskPhone, onlyDigits } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
+import { ask } from "@/components/confirm";
 
 type Site = { slug: string; is_published: boolean; title: string; about: string; whatsapp: string; phone: string; email: string; address: string; instagram: string; accent_color: string; url: string; feed_url: string | null };
 
@@ -68,15 +69,15 @@ export function SitePage() {
                   </div>
                 ) : <p className="text-sm text-muted">Salve a configuração para criar o site.</p>}
               </Card>
-              <Card title="Feed para portais" description="Cadastre este link no integrador do portal (OLX, Webmotors, iCarros…). Ele lista os carros marcados para cada portal na ficha do veículo.">
+              <Card title="Exportar estoque (feed)" description="Link em XML com os carros publicados no site: fotos, preço, opcionais e descrição. Use com integradores e parceiros que importam estoque por URL.">
                 {q.data?.feed_url ? (
                   <div className="space-y-2">
                     <code className="block rounded-md bg-pale p-2 text-xs break-all">{q.data.feed_url}</code>
                     <div className="flex gap-2">
                       <Button size="sm" variant="secondary" onClick={() => copy(q.data!.feed_url!)}><Copy className="size-4" /> Copiar</Button>
-                      {manage && <Button size="sm" variant="ghost" onClick={() => confirm("Gerar um novo link? O antigo para de funcionar nos portais.") && rotate.mutate()}>Gerar novo link</Button>}
+                      {manage && <Button size="sm" variant="ghost" onClick={() => void ask("Gerar um novo link? O link antigo para de funcionar para quem já usa.").then((ok) => ok && rotate.mutate())}>Gerar novo link</Button>}
                     </div>
-                    <p className="text-xs text-muted">Para um portal específico, acrescente <code>?portal=olx</code> (ou webmotors, mercadolivre, icarros, mobiauto).</p>
+                    <p className="text-xs text-muted">A publicação automática direto nos portais (OLX, Webmotors, Mercado Livre) ainda não está disponível.</p>
                   </div>
                 ) : <p className="text-sm text-muted">Disponível depois de salvar o site.</p>}
               </Card>

@@ -12,6 +12,7 @@ import { handleApiError } from "@/lib/forms";
 import { adminApi } from "../api";
 import { useAdmin } from "../auth";
 import { DATE_FILTERS, OrgCell, ResourceTable, STATUS_OPTIONS } from "../components";
+import { ask } from "@/components/confirm";
 
 type UserRow = {
   id: string;
@@ -103,7 +104,7 @@ export function UsuarioDetailPage() {
             <Mail className="size-4" /> Enviar redefinição de senha
           </Button>
           {u.totp_enabled && (
-            <Button size="sm" variant="secondary" onClick={() => confirm("Desativar o 2FA deste usuário? Ele poderá configurar de novo no perfil.") && act.mutate({ path: "/reset-mfa" })}>
+            <Button size="sm" variant="secondary" onClick={() => void ask("Desativar o 2FA deste usuário? Ele poderá configurar de novo no perfil.").then((ok) => ok && act.mutate({ path: "/reset-mfa" }))}>
               <ShieldOff className="size-4" /> Redefinir 2FA
             </Button>
           )}
@@ -111,7 +112,7 @@ export function UsuarioDetailPage() {
             <Button
               size="sm"
               variant={u.is_active ? "danger" : "primary"}
-              onClick={() => (!u.is_active || confirm("Bloquear o acesso deste usuário?")) && act.mutate({ path: "", method: "PATCH", body: { is_active: !u.is_active } })}
+              onClick={() => void (!u.is_active ? Promise.resolve(true) : ask("Bloquear o acesso deste usuário?")).then((ok) => ok && act.mutate({ path: "", method: "PATCH", body: { is_active: !u.is_active } }))}
             >
               {u.is_active ? "Bloquear acesso" : "Desbloquear"}
             </Button>

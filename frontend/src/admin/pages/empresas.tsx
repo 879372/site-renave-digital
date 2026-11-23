@@ -13,6 +13,7 @@ import { handleApiError } from "@/lib/forms";
 import { adminApi } from "../api";
 import { DATE_FILTERS, ResourceTable, STATUS_OPTIONS } from "../components";
 import { ConsultasTable } from "./operacoes";
+import { ask } from "@/components/confirm";
 
 type OrgRow = {
   id: string;
@@ -326,7 +327,7 @@ export function EmpresaDetailPage() {
             variant={org.is_active ? "danger" : "primary"}
             size="sm"
             loading={toggle.isPending}
-            onClick={() => (!org.is_active || confirm("Desativar esta empresa? Os membros perdem o acesso a ela.")) && toggle.mutate()}
+            onClick={() => void (!org.is_active ? Promise.resolve(true) : ask("Desativar esta empresa? Os membros perdem o acesso a ela.")).then((ok) => ok && toggle.mutate())}
           >
             {org.is_active ? <Ban className="size-4" /> : <CheckCircle2 className="size-4" />}
             {org.is_active ? "Desativar" : "Reativar"}

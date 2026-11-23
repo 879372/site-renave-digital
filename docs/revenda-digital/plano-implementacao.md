@@ -150,7 +150,7 @@ Precisam de credenciais reais para funcionar em produção:
 | Site das lojas | DNS curinga `*.revendadigital.kaibez.com.br` apontando para o app (Vercel) | vitrine em `/loja/<slug>` |
 
 Decisões e limites conhecidos:
-- **Anúncios em portais:** o estoque sai por um feed XML com token secreto. Cada portal cadastra o link no próprio integrador. A publicação direta pela API de cada portal (OLX, Mercado Livre, Webmotors) depende de credenciais de parceiro.
+- **Anúncios em portais (decisão de 2026-11-23):** por enquanto, só o feed XML com os carros publicados no site ("Exportar estoque"). A tela não oferece mais escolher portal. A publicação direta (Mercado Livre por API pública; OLX, Webmotors, iCarros e Mobiauto via credenciamento de integrador) fica para depois. O modelo `vitrine.Anuncio` e o filtro `?portal=` do feed continuam no backend, prontos para quando entrar.
 - **Envio de proposta ao banco:** é manual. O sistema guarda ficha, simulação, propostas e o retorno da financeira.
 - **NF-e e saída no RENAVE:** são ações da venda fechada, preenchidas com os dados do cliente e do carro. Se faltar algum dado, a tela lista quais.
 - **Conciliação:** lê OFX e sugere o lançamento de mesmo valor com vencimento até 10 dias de distância. A baixa só acontece depois de confirmada.

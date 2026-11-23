@@ -13,6 +13,7 @@ import { date, document, maskDocument, onlyDigits, ROLE_LABEL, UFS } from "@/lib
 import { handleApiError } from "@/lib/forms";
 import { lookupAddress, lookupCompany, maskCep } from "@/lib/lookup";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
+import { ask } from "@/components/confirm";
 
 const TABS = [
   ["dados", "Dados da empresa"],
@@ -202,7 +203,7 @@ function Equipe() {
                 <td className="px-5 py-3">{m.totp_enabled ? <Badge tone="green">Ativo</Badge> : <Badge tone="yellow">Desativado</Badge>}</td>
                 <td className="px-5 py-3 text-right">
                   {manage && m.role !== "owner" && m.email !== user?.email && (
-                    <Button size="sm" variant="ghost" aria-label="Remover" onClick={() => confirm(`Remover ${m.full_name}?`) && remove.mutate(m.id)}>
+                    <Button size="sm" variant="ghost" aria-label="Remover" onClick={() => void ask(`Remover ${m.full_name}?`).then((ok) => ok && remove.mutate(m.id))}>
                       <Trash2 className="size-4 text-red" />
                     </Button>
                   )}
@@ -376,7 +377,7 @@ function Certificados() {
                 <td className="px-5 py-3">{c.renave_ready ? <Badge tone="green">Pronto</Badge> : c.renave_error ? <Badge tone="red">{c.renave_error}</Badge> : <Badge tone="yellow">Preparando</Badge>}</td>
                 <td className="px-5 py-3 text-right">
                   {can("vault.manage") && (
-                    <Button size="sm" variant="ghost" aria-label="Desativar" onClick={() => confirm("Desativar este certificado?") && remove.mutate(c.id)}>
+                    <Button size="sm" variant="ghost" aria-label="Desativar" onClick={() => void ask("Desativar este certificado?").then((ok) => ok && remove.mutate(c.id))}>
                       <Trash2 className="size-4 text-red" />
                     </Button>
                   )}

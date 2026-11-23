@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { date, dateTime, document, maskDocument, maskMoney, money, parseMoney, plate } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
 import { lookupAddress, maskCep } from "@/lib/lookup";
+import { ask } from "@/components/confirm";
 
 type Vehicle = {
   id: string;
@@ -576,12 +577,12 @@ export function EstoqueDetailPage() {
             </Button>
           )}
           {inStock && (
-            <Button variant="danger" loading={action.isPending} onClick={() => confirm("Cancelar a entrada deste veículo no RENAVE?") && action.mutate("cancelar-entrada")}>
+            <Button variant="danger" loading={action.isPending} onClick={() => void ask("Cancelar a entrada deste veículo no RENAVE?").then((ok) => ok && action.mutate("cancelar-entrada"))}>
               <Undo2 className="size-4" /> Cancelar entrada
             </Button>
           )}
           {sold && (
-            <Button variant="danger" loading={action.isPending} onClick={() => confirm("Cancelar a saída e devolver o veículo ao estoque?") && action.mutate("cancelar-saida")}>
+            <Button variant="danger" loading={action.isPending} onClick={() => void ask("Cancelar a saída e devolver o veículo ao estoque?").then((ok) => ok && action.mutate("cancelar-saida"))}>
               <Undo2 className="size-4" /> Cancelar saída
             </Button>
           )}

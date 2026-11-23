@@ -9,6 +9,7 @@ import { Button, Card, Empty, Field, Input, PageHeader, Select, Spinner, Table }
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { handleApiError } from "@/lib/forms";
+import { ask } from "@/components/confirm";
 
 type Row = { seller_id: string | null; seller_name: string; units: number; revenue_cents: number; profit_cents: number; commission_cents: number; commission_pending_cents: number; goal_units: number | null; goal_revenue_cents: number | null };
 
@@ -42,7 +43,7 @@ export function ComissoesPage() {
       <PageHeader title="Vendedores e comissões" description="Ranking do mês, metas e fechamento das comissões." action={<Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-9 w-44" />} />
       <PlanGate feature="comissoes" title="Vendedores e comissões">
         <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-          <Card title="Ranking do mês" action={manage && pending > 0 && <Button size="sm" onClick={() => confirm("Gerar as contas a pagar das comissões pendentes do mês?") && pay.mutate()} loading={pay.isPending}>Fechar comissões</Button>}>
+          <Card title="Ranking do mês" action={manage && pending > 0 && <Button size="sm" onClick={() => void ask("Gerar as contas a pagar das comissões pendentes do mês?").then((ok) => ok && pay.mutate())} loading={pay.isPending}>Fechar comissões</Button>}>
             {rel.isLoading ? <Spinner /> : !rel.data?.rows.length ? <Empty title="Nenhuma venda fechada no mês" icon={<Trophy />} /> : (
               <Table head={["#", "Vendedor", "Vendas", "Faturamento", "Lucro", "Comissão", "Meta"]}>
                 {rel.data.rows.map((x, i) => (

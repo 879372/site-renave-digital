@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 
 import { MoneyInput, Tabs, useMembers, useTab, type Paged } from "@/components/kit";
+import { askText } from "@/components/confirm";
 import { PlanGate } from "@/components/PlanGate";
 import { Badge, Button, Card, Empty, Field, Input, Modal, PageHeader, Select, Spinner, Table } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -63,14 +64,19 @@ function Funil() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
     onError: (e) => handleApiError(e),
   });
-  const onDrop = (stage: string) => {
+  const onDrop = async (stage: string) => {
     if (!drag) return;
     const lead = q.data?.results.find((l) => l.id === drag);
     if (!lead || lead.stage === stage) return;
     let lost: string | undefined;
     if (stage === "perdido") {
-      lost = prompt("Motivo da perda (preço, crédito negado, comprou em outro lugar…)") ?? undefined;
+      const leadId = drag;
+      setDrag(null);
+      lost = (await askText({ title: "Por que o lead foi perdido?", label: "Motivo da perda", placeholder: "Preço, crédito negado, comprou em outro lugar…", confirmLabel: "Marcar como perdido" })) ?? undefined;
       if (!lost) return;
+      qc.setQueryData(["leads", organization?.id], (old: Paged<Lead> | undefined) => old && { ...old, results: old.results.map((l) => (l.id === leadId ? { ...l, stage } : l)) });
+      move.mutate({ id: leadId, stage, lost_reason: lost });
+      return;
     }
     qc.setQueryData(["leads", organization?.id], (old: Paged<Lead> | undefined) => old && { ...old, results: old.results.map((l) => (l.id === drag ? { ...l, stage } : l)) });
     move.mutate({ id: drag, stage, lost_reason: lost });
@@ -85,7 +91,7 @@ function Funil() {
         {STAGES.map(([stage, label]) => {
           const items = leads.filter((l) => l.stage === stage);
           return (
-            <section key={stage} onDragOver={(e) => e.preventDefault()} onDrop={() => onDrop(stage)} className={clsx("flex min-h-64 flex-col rounded-xl bg-pale/70 p-2", drag && "ring-1 ring-line")}>
+            <section key={stage} onDragOver={(e) => e.preventDefault()} onDrop={() => void onDrop(stage)} className={clsx("flex min-h-64 flex-col rounded-xl bg-pale/70 p-2", drag && "ring-1 ring-line")}>
               <header className="mb-2 flex items-center justify-between px-1 text-sm font-semibold">{label}<span className="text-xs font-normal text-muted">{items.length}</span></header>
               <div className="space-y-2">
                 {items.map((l) => (
