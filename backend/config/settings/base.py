@@ -266,15 +266,11 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 
 ADMIN_URL = env("DJANGO_ADMIN_URL", "painel-interno/")
 
-# --- E-mail (Resend via SMTP) -------------------------------------------------------
-# Sem RESEND_API_KEY os e-mails vão para o console (desenvolvimento).
-EMAIL_HOST = "smtp.resend.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "resend"
-EMAIL_HOST_PASSWORD = env("RESEND_API_KEY")
+# --- E-mail (Resend por HTTPS) ----------------------------------------------------
+# Sem a chave, o desenvolvimento mantém o backend de console.
+RESEND_API_KEY = env("RESEND_API_KEY")
 EMAIL_TIMEOUT = 15
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend" if EMAIL_HOST_PASSWORD else "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "core.email_backend.ResendEmailBackend" if RESEND_API_KEY else "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "REVENDA DIGITAL <nao-responda@kaibez.com.br>")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 SUPPORT_EMAIL = env("SUPPORT_EMAIL", "contato@kaibez.com.br")

@@ -89,7 +89,7 @@ Em produção, defina no backend: `DJANGO_ALLOWED_HOSTS=app.revendadigital.kaibe
 
 ## E-mails
 
-Enviados pelo Resend (SMTP `smtp.resend.com`), em segundo plano pelo Celery, com novas tentativas automáticas.
+Enviados pela API HTTPS do Resend (`https://api.resend.com/emails`), em segundo plano pelo Celery, com novas tentativas automáticas.
 
 | Uso | Endereço |
 |---|---|

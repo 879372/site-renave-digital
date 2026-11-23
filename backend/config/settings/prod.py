@@ -18,7 +18,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 REFRESH_COOKIE_SECURE = True
 
-# E-mail transacional via Resend (SMTP). Sem a chave, a API sobe, mas os e-mails não saem.
+# E-mail transacional via API HTTPS do Resend. Sem a chave, a API sobe, mas os e-mails não saem.
 if not env("RESEND_API_KEY"):
     import logging
 
