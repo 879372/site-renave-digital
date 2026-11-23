@@ -1,5 +1,9 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
+
+/** Junta classes resolvendo conflitos do Tailwind (ex.: w-44 vence o w-full padrão). */
+export const cx = (...args: Parameters<typeof clsx>) => twMerge(clsx(...args));
 import { Loader2, X } from "lucide-react";
 import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
@@ -15,7 +19,7 @@ const VARIANTS: Record<Variant, string> = {
 
 /** Classes do botão, para links com aparência de botão (evita <a><button>). */
 export function buttonClass(variant: Variant = "primary", size: "sm" | "md" = "md", className?: string) {
-  return clsx(
+  return cx(
     "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
     size === "sm" ? "h-8 px-3 text-[13px]" : "h-10 px-4 text-sm",
     VARIANTS[variant],
@@ -59,19 +63,19 @@ export function Field({ label, error, hint, children, className, htmlFor }: { la
 const inputBase = "w-full rounded-lg border bg-white px-3 text-sm text-ink placeholder:text-muted/60 transition disabled:bg-pale aria-[invalid=true]:border-red";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => (
-  <input ref={ref} className={clsx(inputBase, "h-10 border-line", className)} {...props} />
+  <input ref={ref} className={cx(inputBase, "h-10 border-line", className)} {...props} />
 ));
 Input.displayName = "Input";
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(({ className, children, ...props }, ref) => (
-  <select ref={ref} className={clsx(inputBase, "h-10 border-line", className)} {...props}>
+  <select ref={ref} className={cx(inputBase, "h-10 border-line", className)} {...props}>
     {children}
   </select>
 ));
 Select.displayName = "Select";
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(({ className, ...props }, ref) => (
-  <textarea ref={ref} className={clsx(inputBase, "border-line py-2.5", className)} {...props} />
+  <textarea ref={ref} className={cx(inputBase, "border-line py-2.5", className)} {...props} />
 ));
 Textarea.displayName = "Textarea";
 

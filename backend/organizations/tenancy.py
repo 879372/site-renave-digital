@@ -36,6 +36,10 @@ def resolve_membership(request) -> Membership:
     if membership is None:
         raise NotFound("Empresa não encontrada.")
     org = membership.organization
+    if org.parent_id:
+        from billing.entitlements import plan_for
+
+        plan_for(org)  # Filiais só operam enquanto a principal mantém Multi-loja.
     if org.mfa_required and not request.user.totp_enabled:
         raise PermissionDenied("Esta empresa exige verificação em duas etapas. Ative o 2FA no seu perfil.")
     request._membership = membership

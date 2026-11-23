@@ -30,6 +30,8 @@ def applies(organization) -> bool:
 def get_subscription(organization) -> Subscription | None:
     if not applies(organization):
         return None
+    if organization.parent_id:  # filial: plano da loja principal
+        return get_subscription(organization.parent)
     sub = Subscription.objects.select_related("plan").filter(organization=organization).first()
     if sub is None:
         from .service import start_trial
@@ -47,7 +49,10 @@ def effective_plan(sub: Subscription) -> Plan:
 
 def plan_for(organization) -> Plan | None:
     sub = get_subscription(organization)
-    return effective_plan(sub) if sub else None
+    plan = effective_plan(sub) if sub else None
+    if organization.parent_id and plan and not plan.has_feature("multiloja"):
+        raise PlanRequired("A filial está suspensa. Reative o plano Premium na loja principal.", extra={"required_plan": "premium"})
+    return plan
 
 
 def has_feature(organization, feature: str) -> bool:

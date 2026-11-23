@@ -89,7 +89,7 @@ O **Despachante Digital é outro sistema**, sem relação com este: não há int
 - NF-e sai sem cobrança por nota para quem tem o recurso no plano. Cancelar e corrigir nota continua liberado mesmo depois de descer de plano.
 - Falta: validar no sandbox do Asaas com chave real e cadastrar o webhook no painel (`/api/hooks/asaas`).
 
-### Fase 1 — MVP (lançar Grátis e Essencial)
+### Fase 1 — MVP (lançar Grátis e Essencial) ✅ implementada
 
 **Objetivo:** a loja opera o dia a dia: compra, prepara, vende e vê o resultado.
 
@@ -117,7 +117,7 @@ O **Despachante Digital é outro sistema**, sem relação com este: não há int
 
 **Pronto quando:** uma loja de teste cadastra um carro pela placa, lança custos, vende com troca e financiamento, emite as duas notas, faz entrada e saída no RENAVE, e o dashboard e o financeiro batem com a operação.
 
-### Fase 2 — Profissional
+### Fase 2 — Profissional ✅ implementada
 
 1. **CRM:** leads com origem, funil em kanban, tarefas de retorno, histórico do cliente, lead → proposta.
 2. **Vendedores e comissões:** regra por loja (percentual da sobra, percentual do preço ou valor fixo), metas, ranking, fechamento mensal que gera a conta a pagar.
@@ -126,7 +126,7 @@ O **Despachante Digital é outro sistema**, sem relação com este: não há int
 5. **Integrador de anúncios:** começar por um portal (OLX ou Mercado Livre, que têm API aberta com OAuth). Webmotors depende de parceria.
 6. **Assinatura eletrônica** dos contratos (ZapSign ou Clicksign).
 
-### Fase 3 — Premium
+### Fase 3 — Premium ✅ implementada
 
 1. **Financiamento:** ficha cadastral, simulador (taxa, prazo, CET), propostas por banco com status e retorno. O envio ao banco começa manual.
 2. **Multi-loja:** grupo de CNPJs, transferência de veículo entre lojas (RENAVE transferência entre filiais), visão consolidada.
@@ -134,6 +134,26 @@ O **Despachante Digital é outro sistema**, sem relação com este: não há int
 4. **Pós-venda e garantia:** prazos, ocorrências, custo de garantia por veículo.
 5. **Avaliação no pátio pelo celular:** PWA com câmera.
 6. **Conciliação bancária** por arquivo OFX.
+
+## Situação em 2026-11-23
+
+Fases 0 a 3 implementadas: apps `pessoas`, `estoque`, `vendas`, `financeiro`, `contratos`, `crm`, `vitrine`, `financiamento`, `posvenda`, `painel` e multi-loja em `organizations/branches.py`. São 114 testes automatizados no backend, e houve uma bateria manual no navegador (cadastro com FIPE real, fotos, custos, venda com financiamento, contrato, financeiro, CRM, site público no celular, simulador, relatórios, filial e cadeados do Grátis).
+
+Precisam de credenciais reais para funcionar em produção:
+
+| Integração | Variáveis | Sem a chave |
+|---|---|---|
+| Consulta de placa (API PLACAS / wdapi2) | `PLACA_API_TOKEN` | cadastro manual ou pela tabela FIPE (grátis) |
+| Fotos e documentos (Cloudflare R2) | `R2_*` | arquivos no disco do servidor |
+| Assinatura eletrônica (ZapSign) | `ZAPSIGN_API_TOKEN`, `ZAPSIGN_WEBHOOK_TOKEN` | contrato impresso / PDF pelo navegador |
+| Pagamentos (Asaas) | `ASAAS_*` | confirmação manual no backoffice |
+| Site das lojas | DNS curinga `*.revendadigital.kaibez.com.br` apontando para o app (Vercel) | vitrine em `/loja/<slug>` |
+
+Decisões e limites conhecidos:
+- **Anúncios em portais:** o estoque sai por um feed XML com token secreto. Cada portal cadastra o link no próprio integrador. A publicação direta pela API de cada portal (OLX, Mercado Livre, Webmotors) depende de credenciais de parceiro.
+- **Envio de proposta ao banco:** é manual. O sistema guarda ficha, simulação, propostas e o retorno da financeira.
+- **NF-e e saída no RENAVE:** são ações da venda fechada, preenchidas com os dados do cliente e do carro. Se faltar algum dado, a tela lista quais.
+- **Conciliação:** lê OFX e sugere o lançamento de mesmo valor com vencimento até 10 dias de distância. A baixa só acontece depois de confirmada.
 
 ## 4. Frontend
 
@@ -176,3 +196,15 @@ Fonte Inter, números tabulares em tabelas, títulos semibold, botões de 40 px,
 
 1. Fornecedor de consulta por placa: API PLACAS (R$ 0,03) ou fipeplaca (R$ 0,08). Validar a qualidade dos dados com placas reais.
 2. NF-e de veículo: confirmar com a Geranet o envio do grupo `veicProd` (já listado em `docs/arquitetura.md`).
+
+
+### Revisão de regressões — 23/11/2026
+
+- Carteiras das filiais recebem limite do plano pago; o fechamento da principal inclui o consumo de todas, inclusive consumo anterior à suspensão.
+- Filiais são bloqueadas quando a principal deixa o plano com Multi-loja. Os dados ficam preservados e voltam a estar disponíveis ao reativar o Premium.
+- Transferências exigem custos quitados/cancelados. O histórico financeiro fica na origem e é desvinculado dos custos transferidos; pessoas (inclusive consignante) são copiadas para o destino.
+- Formulários de veículo, avaliação e pagamentos preservam o rascunho durante atualizações da consulta. Status e fotos continuam sendo atualizados.
+- Alteração recusada em custo de garantia reverte também a ocorrência. Fotos da compra são copiadas para arquivos independentes.
+- Cancelamento de venda restaura a publicação anterior do veículo. Filtro público de preço inválido retorna 400. Custos pré-carregados eliminam a consulta por veículo no painel.
+- **Limitação pendente:** venda para comprador CNPJ não é mais enviada como transferência entre estabelecimentos. A saída automática fica bloqueada, com mensagem explícita, até confirmar o contrato de venda a pessoa jurídica na API Carven. A venda comercial segue disponível.
+- Regressões em `backend/tests/test_review_regressions.py` e `frontend/tests/form-refetch.test.tsx`. Validação local desta revisão: 126 testes backend e 3 testes React aprovados; build do frontend aprovado. A bateria manual registrada acima é anterior a esta revisão.

@@ -4,8 +4,8 @@ F = {
     "gratis": ["renave", "estoque"],
 }
 F["essencial"] = [*F["gratis"], "fiscal", "financeiro", "custos", "contratos", "avaliacao"]
-F["profissional"] = [*F["essencial"], "crm", "comissoes", "consignacao", "vitrine"]
-F["premium"] = [*F["profissional"], "financiamento", "multiloja", "relatorios", "posvenda"]
+F["profissional"] = [*F["essencial"], "crm", "comissoes", "consignacao", "vitrine", "assinatura"]
+F["premium"] = [*F["profissional"], "financiamento", "multiloja", "relatorios", "posvenda", "conciliacao"]
 
 PLANS = [
     {

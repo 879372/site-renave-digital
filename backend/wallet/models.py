@@ -12,12 +12,9 @@ class Wallet(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [
-            models.CheckConstraint(condition=models.Q(credit_limit_cents__gte=0), name="wallet_credit_limit_non_negative"),
-            models.CheckConstraint(
-                condition=models.Q(balance_cents__gte=models.F("credit_limit_cents") * -1), name="wallet_within_credit_limit"
-            ),
-        ]
+        # O limite pode cair abaixo do consumo já feito (assinatura suspensa): a regra
+        # "saldo + limite >= débito" é aplicada no serviço, não como restrição do banco.
+        constraints = [models.CheckConstraint(condition=models.Q(credit_limit_cents__gte=0), name="wallet_credit_limit_non_negative")]
 
     @property
     def available_cents(self) -> int:
@@ -105,6 +102,7 @@ class ServicePrice(models.Model):
         RENAVE_CANCELAR_SAIDA = "renave.cancelar_saida", "RENAVE — cancelamento de saída"
         COMUNICACAO = "comunicacao.transmitir", "Comunicação de venda"
         NFE = "fiscal.nfe", "NF-e autorizada"
+        PLACA = "consulta.placa", "Consulta de placa (acima da franquia do plano)"
 
     code = models.CharField(max_length=40, choices=Code.choices, unique=True)
     price_cents = models.PositiveIntegerField()
@@ -121,4 +119,5 @@ DEFAULT_PRICES = {
     ServicePrice.Code.RENAVE_CANCELAR_SAIDA: 990,
     ServicePrice.Code.COMUNICACAO: 1990,
     ServicePrice.Code.NFE: 190,
+    ServicePrice.Code.PLACA: 50,
 }

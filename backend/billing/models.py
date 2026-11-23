@@ -26,6 +26,8 @@ class Feature(models.TextChoices):
     MULTILOJA = "multiloja", "Multi-loja"
     RELATORIOS = "relatorios", "Relatórios avançados"
     POSVENDA = "posvenda", "Pós-venda e garantia"
+    ASSINATURA = "assinatura", "Assinatura eletrônica"
+    CONCILIACAO = "conciliacao", "Conciliação bancária"
 
 
 class Plan(models.Model):

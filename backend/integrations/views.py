@@ -78,3 +78,31 @@ def asaas_webhook(request):
 
     handle_asaas_event.delay(event, payment)
     return HttpResponse(status=200)
+
+
+@csrf_exempt
+@require_POST
+def zapsign_webhook(request, token: str):
+    """Assinatura concluída ou recusada na ZapSign (token secreto na URL)."""
+    expected = settings.ZAPSIGN.get("WEBHOOK_TOKEN", "")
+    if not expected or not hmac.compare_digest(expected.encode(), token.encode()):
+        return HttpResponse(status=401)
+    try:
+        payload = json.loads(request.body)
+    except ValueError:
+        return HttpResponse(status=400)
+    from contratos.models import Documento
+
+    doc_token = str(payload.get("token") or payload.get("doc_token") or "")[:80]
+    event = str(payload.get("event_type", ""))
+    doc = Documento.objects.filter(signature_provider_id=doc_token).first() if doc_token else None
+    if doc is None:
+        return HttpResponse(status=200)
+    status = payload.get("status", "")
+    if event == "doc_signed" or status == "signed":
+        doc.signature_status = Documento.Signature.SIGNED
+        doc.signed_file_url = str(payload.get("signed_file") or "")[:500]
+    elif event == "doc_refused" or status == "refused":
+        doc.signature_status = Documento.Signature.REFUSED
+    doc.save(update_fields=["signature_status", "signed_file_url", "updated_at"])
+    return HttpResponse(status=200)

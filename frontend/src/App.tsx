@@ -8,6 +8,7 @@ import { NotFoundPage, StatusScreen } from "./components/StatusScreen";
 import { Button, Modal, Spinner } from "./components/ui";
 import { api } from "./lib/api";
 import { useAuth } from "./lib/auth";
+import { storefrontSlug } from "./storefront-slug";
 
 const VERIFY_CODE_KEY = "rd.verify-code";
 
@@ -21,7 +22,26 @@ const Forgot = page(() => import("./pages/auth"), "ForgotPage");
 const Reset = page(() => import("./pages/auth"), "ResetPage");
 const Invite = page(() => import("./pages/auth"), "InvitePage");
 const VerifyEmail = page(() => import("./pages/auth"), "VerifyEmailPage");
-const Dashboard = page(() => import("./pages/dashboard"), "DashboardPage");
+const Painel = page(() => import("./pages/painel"), "PainelPage");
+const Veiculos = page(() => import("./pages/veiculos"), "VeiculosPage");
+const VeiculoDetail = page(() => import("./pages/veiculos"), "VeiculoDetailPage");
+const Avaliacoes = page(() => import("./pages/avaliacoes"), "AvaliacoesPage");
+const Avaliacao = page(() => import("./pages/avaliacoes"), "AvaliacaoPage");
+const Vendas = page(() => import("./pages/vendas"), "VendasPage");
+const NovaVenda = page(() => import("./pages/vendas"), "NovaVendaPage");
+const VendaDetail = page(() => import("./pages/vendas"), "VendaDetailPage");
+const Clientes = page(() => import("./pages/clientes"), "ClientesPage");
+const Financeiro = page(() => import("./pages/financeiro"), "FinanceiroPage");
+const Contratos = page(() => import("./pages/contratos"), "ContratosPage");
+const Documento = page(() => import("./pages/contratos"), "DocumentoPage");
+const Leads = page(() => import("./pages/crm"), "LeadsPage");
+const Comissoes = page(() => import("./pages/comissoes"), "ComissoesPage");
+const Site = page(() => import("./pages/site"), "SitePage");
+const Financiamento = page(() => import("./pages/financiamento"), "FinanciamentoPage");
+const PosVenda = page(() => import("./pages/gestao-extra"), "PosVendaPage");
+const Relatorios = page(() => import("./pages/gestao-extra"), "RelatoriosPage");
+const Lojas = page(() => import("./pages/gestao-extra"), "LojasPage");
+const Storefront = page(() => import("./storefront"), "Storefront");
 const Consultas = page(() => import("./pages/consultas"), "ConsultasPage");
 const ConsultaDetail = page(() => import("./pages/consultas"), "ConsultaDetailPage");
 const Estoque = page(() => import("./pages/estoque"), "EstoquePage");
@@ -39,7 +59,7 @@ const Admin = page(() => import("./admin/AdminApp"), "AdminApp");
 const Privacy = page(() => import("./pages/legal"), "PrivacyPage");
 
 /** Rotas que existem para quem está logado: sem sessão, mandam para o login em vez do 404. */
-const PRIVATE_ROUTES = /^\/(consultas|estoque|comunicacao-venda|notas|carteira|planos|empresa|perfil|auditoria)(\/|$)/;
+const PRIVATE_ROUTES = /^\/(consultas|estoque|comunicacao-venda|notas|carteira|planos|empresa|perfil|auditoria|veiculos|avaliacoes|vendas|clientes|financeiro|contratos|leads|comissoes|site|financiamento|pos-venda|relatorios|lojas)(\/|$)/;
 
 function LegalGate() {
   const { user, legalVersion, reload } = useAuth();
@@ -78,6 +98,15 @@ function LegalGate() {
 export function App() {
   const { status, organization, user } = useAuth();
   const [location] = useLocation();
+  const storeSlug = storefrontSlug();
+
+  if (storeSlug) {
+    return (
+      <Suspense fallback={<Spinner />}>
+        <Storefront slug={storeSlug} />
+      </Suspense>
+    );
+  }
 
   if (location === "/admin" || location.startsWith("/admin/")) {
     return (
@@ -146,7 +175,26 @@ export function App() {
       <LegalGate />
       <Suspense fallback={<Spinner />}>
         <Switch>
-          <Route path="/" component={Dashboard} />
+          <Route path="/" component={Painel} />
+          <Route path="/veiculos" component={Veiculos} />
+          <Route path="/veiculos/:id" component={VeiculoDetail} />
+          <Route path="/avaliacoes" component={Avaliacoes} />
+          <Route path="/avaliacoes/nova" component={Avaliacao} />
+          <Route path="/avaliacoes/:id" component={Avaliacao} />
+          <Route path="/vendas" component={Vendas} />
+          <Route path="/vendas/nova" component={NovaVenda} />
+          <Route path="/vendas/:id" component={VendaDetail} />
+          <Route path="/clientes" component={Clientes} />
+          <Route path="/financeiro" component={Financeiro} />
+          <Route path="/contratos" component={Contratos} />
+          <Route path="/contratos/:id" component={Documento} />
+          <Route path="/leads" component={Leads} />
+          <Route path="/comissoes" component={Comissoes} />
+          <Route path="/site" component={Site} />
+          <Route path="/financiamento" component={Financiamento} />
+          <Route path="/pos-venda" component={PosVenda} />
+          <Route path="/relatorios" component={Relatorios} />
+          <Route path="/lojas" component={Lojas} />
           <Route path="/consultas" component={Consultas} />
           <Route path="/consultas/:id" component={ConsultaDetail} />
           <Route path="/estoque" component={Estoque} />

@@ -60,7 +60,7 @@ def start_trial(organization) -> Subscription:
 
 
 def on_organization_created(organization) -> None:
-    if applies(organization):
+    if applies(organization) and not organization.parent_id:
         start_trial(organization)
 
 
@@ -71,6 +71,9 @@ def sync_credit_limit(sub: Subscription) -> None:
     """Pós-pago só para plano pago ativo (ou em atraso dentro da tolerância). Teste e Grátis são pré-pagos."""
     allowed = sub.plan.postpaid and sub.status in (Status.ACTIVE, Status.PAST_DUE)
     wallet.set_credit_limit(sub.organization, sub.plan.credit_limit_cents if allowed else 0)
+    branch_limit = sub.plan.credit_limit_cents if allowed and sub.plan.has_feature("multiloja") else 0
+    for branch in sub.organization.branches.all():
+        wallet.set_credit_limit(branch, branch_limit if branch.is_active else 0)
 
 
 # --- contratação e troca de plano --------------------------------------------------------
@@ -96,6 +99,8 @@ def _proration_credit(sub: Subscription, on: date) -> int:
 
 def change_plan(organization, plan: Plan, cycle: str, *, user=None, request=None) -> Invoice | None:
     """Contrata, sobe ou agenda a descida de plano. Retorna a fatura a pagar (ou None se só agendou)."""
+    if organization.parent_id:
+        raise BusinessError("O plano das filiais é gerenciado pela loja principal.")
     if not plan.is_active:
         raise BusinessError("Este plano não está disponível.")
     if cycle not in Cycle.values:
@@ -312,6 +317,11 @@ def renew(sub: Subscription, on: date | None = None) -> Invoice | None:
         )
         items: list[tuple[str, str, int]] = []
         owed = wallet.invoice_usage(sub.organization, invoice_ref=str(invoice.public_id))
+        # Inclui consumo anterior de filiais, mesmo depois de suspender ou desativar.
+        for branch in sub.organization.branches.order_by("pk"):
+            branch_owed = wallet.invoice_usage(branch, invoice_ref=f"{invoice.public_id}:{branch.pk}")
+            if branch_owed:
+                items.append((InvoiceItem.Kind.USAGE, f"Consumo da filial {branch}", branch_owed))
         if owed:
             label = (
                 f"Consumo de {add_months(billing_date, -1):%d/%m} a {billing_date - timedelta(days=1):%d/%m} (RENAVE e serviços por uso)"
@@ -324,6 +334,11 @@ def renew(sub: Subscription, on: date | None = None) -> Invoice | None:
             items.append(
                 (InvoiceItem.Kind.PLAN, f"Plano {sub.plan.name} — {sub.get_cycle_display().lower()}", sub.plan.price_for(sub.cycle))
             )
+
+        # Filiais ativas: cobradas todo mês (cada CNPJ tem custo próprio de nota fiscal).
+        branches = sub.organization.branches.filter(is_active=True).count()
+        if branches and not sub.plan.is_free and sub.plan.extra_store_price_cents:
+            items.append((InvoiceItem.Kind.EXTRA_STORE, f"Lojas extras ({branches})", branches * sub.plan.extra_store_price_cents))
 
         sub.next_billing_date = None if sub.plan.is_free else add_months(billing_date, 1)
         sub.save()

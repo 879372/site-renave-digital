@@ -51,7 +51,18 @@ class BaseClient:
         return redact(body) if isinstance(body, (dict, list)) else None
 
     def request(
-        self, method: str, path: str, *, json=None, params=None, files=None, data=None, headers=None, timeout=None, log_response=True
+        self,
+        method: str,
+        path: str,
+        *,
+        json=None,
+        params=None,
+        files=None,
+        data=None,
+        headers=None,
+        timeout=None,
+        log_response=True,
+        log_path=None,
     ) -> ProviderResponse:
         url = f"{self.base_url.rstrip('/')}/{path.lstrip('/')}"
         all_headers = {**self.default_headers(), "X-Request-ID": request_id_var.get(), **(headers or {})}
@@ -60,7 +71,7 @@ class BaseClient:
             provider=self.provider,
             organization=self.organization,
             method=method,
-            path=path[:255],
+            path=(log_path or path)[:255],
             request_id=request_id_var.get(),
             request_body=self._log_body(json if json is not None else data),
         )

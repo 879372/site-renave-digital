@@ -15,7 +15,23 @@ def get_wallet(organization) -> Wallet:
 
 def _locked(organization) -> Wallet:
     get_wallet(organization)
-    return Wallet.objects.select_for_update().get(organization=organization)
+    wallet = Wallet.objects.select_for_update().get(organization=organization)
+    if organization.parent_id:
+        from billing.entitlements import get_subscription
+        from billing.models import Subscription
+
+        sub = get_subscription(organization)
+        allowed = (
+            organization.is_active
+            and sub.plan.has_feature("multiloja")
+            and sub.plan.postpaid
+            and sub.status in (Subscription.Status.ACTIVE, Subscription.Status.PAST_DUE)
+        )
+        limit = sub.plan.credit_limit_cents if allowed else 0
+        if wallet.credit_limit_cents != limit:
+            wallet.credit_limit_cents = limit
+            wallet.save(update_fields=["credit_limit_cents", "updated_at"])
+    return wallet
 
 
 def _post(wallet: Wallet, kind, amount, description, *, ref_type="", ref_id="", key=None, user=None) -> LedgerEntry:
@@ -172,10 +188,10 @@ def cancel_topup(topup: TopUp) -> TopUp:
 
 
 def set_credit_limit(organization, limit_cents: int) -> Wallet:
-    """Define o limite pós-pago. Se já houver consumo acima do novo limite, congela no consumo atual."""
+    """Define o limite pós-pago. Se o consumo já passou do novo limite, nada mais é debitado até pagar."""
     with transaction.atomic():
         wallet = _locked(organization)
-        wallet.credit_limit_cents = max(limit_cents, -wallet.balance_cents, 0)
+        wallet.credit_limit_cents = max(limit_cents, 0)
         wallet.save(update_fields=["credit_limit_cents", "updated_at"])
         return wallet
 

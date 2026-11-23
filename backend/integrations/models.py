@@ -9,6 +9,9 @@ class IntegrationCall(models.Model):
         CARVEN = "carven", "Carven"
         GERANET = "geranet", "Geranet"
         ASAAS = "asaas", "Asaas"
+        FIPE = "fipe", "Tabela FIPE"
+        PLACA = "placa", "Consulta de placa"
+        ZAPSIGN = "zapsign", "ZapSign"
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     provider = models.CharField(max_length=10, choices=Provider.choices, db_index=True)

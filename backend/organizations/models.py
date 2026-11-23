@@ -36,6 +36,8 @@ class Organization(TimeStampedModel):
     uf = models.CharField(max_length=2, blank=True)
     is_active = models.BooleanField(default=True)
     mfa_required = models.BooleanField("exigir 2FA de todos os membros", default=False)
+    # Multi-loja (Premium): filiais apontam para a loja principal, que paga a assinatura.
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="branches")
 
     class Meta:
         verbose_name = "empresa"

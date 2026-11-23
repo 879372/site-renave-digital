@@ -2,20 +2,32 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import {
+  BarChart3,
   Building2,
   Car,
   ChevronDown,
+  ClipboardCheck,
   CreditCard,
+  FileSignature,
   FileText,
+  Globe,
+  Handshake,
+  Landmark,
   LayoutDashboard,
+  Lock,
   LogOut,
   Menu,
   ScrollText,
   Search,
   Send,
   ShieldCheck,
+  Store,
+  Trophy,
   User as UserIcon,
+  UserRound,
+  Users,
   Wallet,
+  Warehouse,
   X,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -29,16 +41,51 @@ import { document, money, ROLE_LABEL } from "@/lib/format";
 import { AddCompanyModal } from "./AddCompanyModal";
 import { LegalFooter } from "./LegalFooter";
 
-const NAV: { href: string; label: string; icon: typeof Car; perm?: string; billing?: boolean }[] = [
-  { href: "/", label: "Painel", icon: LayoutDashboard },
-  { href: "/consultas", label: "Consultas", icon: Search },
-  { href: "/estoque", label: "Estoque RENAVE", icon: Car },
-  { href: "/comunicacao-venda", label: "Comunicação de venda", icon: Send },
-  { href: "/notas", label: "Notas fiscais", icon: FileText },
-  { href: "/carteira", label: "Carteira", icon: Wallet },
-  { href: "/planos", label: "Plano e faturas", icon: CreditCard, billing: true },
-  { href: "/empresa", label: "Empresa", icon: Building2 },
-  { href: "/auditoria", label: "Auditoria", icon: ScrollText, perm: "audit.view" },
+type NavItem = { href: string; label: string; icon: typeof Car; perm?: string; feature?: string };
+
+const NAV: { group: string; items: NavItem[] }[] = [
+  { group: "", items: [{ href: "/", label: "Painel", icon: LayoutDashboard }] },
+  {
+    group: "Loja",
+    items: [
+      { href: "/veiculos", label: "Veículos", icon: Car, feature: "estoque" },
+      { href: "/avaliacoes", label: "Avaliações", icon: ClipboardCheck, feature: "avaliacao" },
+      { href: "/vendas", label: "Vendas", icon: Handshake, feature: "estoque" },
+      { href: "/leads", label: "Leads", icon: Users, feature: "crm" },
+      { href: "/clientes", label: "Clientes", icon: UserRound },
+      { href: "/financiamento", label: "Financiamento", icon: Landmark, feature: "financiamento" },
+      { href: "/pos-venda", label: "Pós-venda", icon: ShieldCheck, feature: "posvenda" },
+    ],
+  },
+  {
+    group: "Gestão",
+    items: [
+      { href: "/financeiro", label: "Financeiro", icon: Wallet, feature: "financeiro" },
+      { href: "/comissoes", label: "Comissões", icon: Trophy, feature: "comissoes" },
+      { href: "/contratos", label: "Contratos", icon: FileSignature, feature: "contratos" },
+      { href: "/relatorios", label: "Relatórios", icon: BarChart3, feature: "relatorios" },
+    ],
+  },
+  {
+    group: "RENAVE e fiscal",
+    items: [
+      { href: "/estoque", label: "Estoque RENAVE", icon: Warehouse },
+      { href: "/comunicacao-venda", label: "Comunicação de venda", icon: Send },
+      { href: "/notas", label: "Notas fiscais", icon: FileText, feature: "fiscal" },
+      { href: "/consultas", label: "Consultas", icon: Search },
+    ],
+  },
+  {
+    group: "Configurações",
+    items: [
+      { href: "/site", label: "Site da loja", icon: Globe, feature: "vitrine" },
+      { href: "/lojas", label: "Lojas", icon: Store, feature: "multiloja" },
+      { href: "/planos", label: "Plano e faturas", icon: CreditCard },
+      { href: "/carteira", label: "Carteira", icon: Wallet },
+      { href: "/empresa", label: "Empresa", icon: Building2 },
+      { href: "/auditoria", label: "Auditoria", icon: ScrollText, perm: "audit.view" },
+    ],
+  },
 ];
 
 export function Logo({ light }: { light?: boolean }) {
@@ -55,27 +102,36 @@ export function Logo({ light }: { light?: boolean }) {
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const [location] = useLocation();
   const { can } = useAuth();
-  const { applies } = useBilling();
+  const { has } = useBilling();
   return (
-    <nav className="flex flex-col gap-1" aria-label="Principal">
-      {NAV.filter((n) => (!n.perm || can(n.perm)) && (!n.billing || applies)).map(({ href, label, icon: Icon }) => {
-        const active = href === "/" ? location === "/" : location.startsWith(href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            onClick={onNavigate}
-            className={clsx(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-              active ? "bg-white/10 text-white" : "text-[#a1a1aa] hover:bg-white/5 hover:text-white",
-            )}
-            aria-current={active ? "page" : undefined}
-          >
-            <Icon className={clsx("size-[18px]", active && "text-mint")} aria-hidden />
-            {label}
-          </Link>
-        );
-      })}
+    <nav className="flex flex-col gap-4" aria-label="Principal">
+      {NAV.map(({ group, items }) => (
+        <div key={group || "top"} className="flex flex-col gap-0.5">
+          {group && <p className="mb-1 px-3 text-[11px] font-medium tracking-wide text-[#71717a] uppercase">{group}</p>}
+          {items
+            .filter((n) => !n.perm || can(n.perm))
+            .map(({ href, label, icon: Icon, feature }) => {
+              const active = href === "/" ? location === "/" : location === href || location.startsWith(`${href}/`);
+              const locked = !!feature && !has(feature);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onNavigate}
+                  className={clsx(
+                    "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                    active ? "bg-white/10 text-white" : "text-[#a1a1aa] hover:bg-white/5 hover:text-white",
+                  )}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <Icon className={clsx("size-[17px]", active && "text-mint")} aria-hidden />
+                  <span className="flex-1">{label}</span>
+                  {locked && <Lock className="size-3.5 text-[#71717a]" aria-label="Fora do plano" />}
+                </Link>
+              );
+            })}
+        </div>
+      ))}
     </nav>
   );
 }
@@ -210,7 +266,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const sidebar = (
-    <div className="flex h-full flex-col gap-6 p-4">
+    <div className="flex h-full flex-col gap-5 overflow-y-auto p-4">
       <div className="flex items-center justify-between px-1 pt-1">
         <Link href="/" onClick={() => setOpen(false)}>
           <Logo light />

@@ -58,6 +58,16 @@ INSTALLED_APPS = [
     "renave",
     "comunicacao",
     "fiscal",
+    "pessoas",
+    "estoque",
+    "financeiro",
+    "vendas",
+    "contratos",
+    "crm",
+    "vitrine",
+    "financiamento",
+    "posvenda",
+    "painel",
     "backoffice",
 ]
 
@@ -161,11 +171,33 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Arquivos enviados (fotos de veículos, documentos): Cloudflare R2 (API S3) quando configurado.
+R2_BUCKET = env("R2_BUCKET")
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+if R2_BUCKET:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": R2_BUCKET,
+            "endpoint_url": env("R2_ENDPOINT_URL", required=True),
+            "access_key": env("R2_ACCESS_KEY_ID", required=True),
+            "secret_key": env("R2_SECRET_ACCESS_KEY", required=True),
+            "region_name": env("R2_REGION", "auto"),
+            "signature_version": "s3v4",
+            "default_acl": None,
+            "file_overwrite": False,
+            # Domínio público do bucket (fotos da vitrine). Sem ele, as URLs saem assinadas e expiram.
+            "custom_domain": env("R2_PUBLIC_DOMAIN") or None,
+            "querystring_auth": not env("R2_PUBLIC_DOMAIN"),
+        },
+    }
 MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = env("MEDIA_URL", "/api/media/")
+MAX_PHOTO_BYTES = 8 * 1024 * 1024
+MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 
 # --- API -------------------------------------------------------------------
 
@@ -300,6 +332,27 @@ GERANET = {
     "AMBIENTE": env("GERANET_AMBIENTE", "2"),  # 1 produção, 2 homologação
     "TIMEOUT": float(env("GERANET_TIMEOUT", "120")),
 }
+
+# Consulta de placa (API PLACAS / wdapi2: GET {BASE_URL}/consulta/{placa}/{token}).
+PLACA_API = {
+    "BASE_URL": env("PLACA_API_BASE_URL", "https://wdapi2.com.br"),
+    "TOKEN": env("PLACA_API_TOKEN"),
+    "TIMEOUT": float(env("PLACA_API_TIMEOUT", "20")),
+}
+FIPE_API = {
+    "BASE_URL": env("FIPE_API_BASE_URL", "https://fipe.parallelum.com.br/api/v2"),
+    "TOKEN": env("FIPE_API_TOKEN"),
+    "TIMEOUT": float(env("FIPE_API_TIMEOUT", "15")),
+}
+# Assinatura eletrônica (ZapSign). Sandbox: https://sandbox.api.zapsign.com.br
+ZAPSIGN = {
+    "BASE_URL": env("ZAPSIGN_BASE_URL", "https://sandbox.api.zapsign.com.br"),
+    "TOKEN": env("ZAPSIGN_API_TOKEN"),
+    "WEBHOOK_TOKEN": env("ZAPSIGN_WEBHOOK_TOKEN"),
+    "TIMEOUT": float(env("ZAPSIGN_TIMEOUT", "30")),
+}
+# Site das lojas: <slug>.STOREFRONT_DOMAIN
+STOREFRONT_DOMAIN = env("STOREFRONT_DOMAIN", "revendadigital.kaibez.com.br")
 
 ASAAS = {
     "BASE_URL": env("ASAAS_BASE_URL", "https://api-sandbox.asaas.com/v3"),
