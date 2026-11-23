@@ -275,10 +275,10 @@ EMAIL_HOST_USER = "resend"
 EMAIL_HOST_PASSWORD = env("RESEND_API_KEY")
 EMAIL_TIMEOUT = 15
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend" if EMAIL_HOST_PASSWORD else "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "REVENDA DIGITAL <nao-responda@kaiobez.com.br>")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "REVENDA DIGITAL <nao-responda@kaibez.com.br>")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-SUPPORT_EMAIL = env("SUPPORT_EMAIL", "contato@kaiobez.com.br")
-PRIVACY_EMAIL = env("PRIVACY_EMAIL", "privacidade@kaiobez.com.br")
+SUPPORT_EMAIL = env("SUPPORT_EMAIL", "contato@kaibez.com.br")
+PRIVACY_EMAIL = env("PRIVACY_EMAIL", "privacidade@kaibez.com.br")
 
 # Chave mestra do cofre (32 bytes em base64 urlsafe). Rotacionável: VAULT_MASTER_KEYS_OLD.
 VAULT_MASTER_KEY = env("VAULT_MASTER_KEY", required=True)

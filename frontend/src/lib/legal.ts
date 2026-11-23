@@ -10,7 +10,7 @@ export const LEGAL = {
   cnpj: "[CNPJ]",
   address: "[ENDEREÇO COMPLETO]",
   dpoName: "[NOME DO ENCARREGADO]",
-  dpoEmail: "privacidade@kaiobez.com.br",
+  dpoEmail: "privacidade@kaibez.com.br",
   supportWhatsapp: "(84) 98627-6144",
   forum: "Natal/RN",
 };

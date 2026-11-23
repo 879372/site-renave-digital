@@ -196,7 +196,7 @@ function NewStaffModal({ onClose }: { onClose: () => void }) {
           <Input id="st-name" placeholder="Nome da pessoa" required {...form.register("full_name")} />
         </Field>
         <Field label="E-mail" htmlFor="st-email" error={form.formState.errors.email?.message}>
-          <Input id="st-email" type="email" placeholder="pessoa@kaiobez.com.br" required {...form.register("email")} />
+          <Input id="st-email" type="email" placeholder="pessoa@kaibez.com.br" required {...form.register("email")} />
         </Field>
         <Field label="Senha inicial" htmlFor="st-pass" error={form.formState.errors.password?.message} hint="Mínimo de 10 caracteres, com letras e números.">
           <Input id="st-pass" type="password" autoComplete="new-password" placeholder="Senha forte" required minLength={10} {...form.register("password")} />

@@ -111,7 +111,7 @@ def test_emails_saem_do_dominio_com_resposta_para_suporte(user, django_capture_o
         assert APIClient().post("/api/auth/password/reset", {"email": user.email}, format="json").status_code == 202
     assert len(mail.outbox) == 1
     msg = mail.outbox[0]
-    assert msg.from_email.endswith("@kaiobez.com.br>") and msg.reply_to == ["contato@kaiobez.com.br"]
+    assert msg.from_email.endswith("@kaibez.com.br>") and msg.reply_to == ["contato@kaibez.com.br"]
     assert "/redefinir-senha?uid=" in msg.body
 
 

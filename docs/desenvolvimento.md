@@ -93,11 +93,11 @@ Enviados pelo Resend (SMTP `smtp.resend.com`), em segundo plano pelo Celery, com
 
 | Uso | Endereço |
 |---|---|
-| Remetente (recuperação de senha, convites) | `nao-responda@kaiobez.com.br` |
-| Respostas dos usuários (reply-to) | `contato@kaiobez.com.br` |
-| Encarregado de dados (LGPD) | `privacidade@kaiobez.com.br` |
+| Remetente (recuperação de senha, convites) | `nao-responda@kaibez.com.br` |
+| Respostas dos usuários (reply-to) | `contato@kaibez.com.br` |
+| Encarregado de dados (LGPD) | `privacidade@kaibez.com.br` |
 
-No Resend: verifique o domínio `kaiobez.com.br` (registros SPF/DKIM no DNS) e crie a API key em `RESEND_API_KEY`. Os endereços `contato@` e `privacidade@` precisam ser caixas que recebam mensagens.
+No Resend: verifique o domínio `kaibez.com.br` (registros SPF/DKIM no DNS) e crie a API key em `RESEND_API_KEY`. Os endereços `contato@` e `privacidade@` precisam ser caixas que recebam mensagens.
 
 ## Antes de publicar (preencher)
 

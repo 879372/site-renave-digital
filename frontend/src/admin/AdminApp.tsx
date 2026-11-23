@@ -132,7 +132,7 @@ function LoginPage() {
             <p className="mt-1 text-sm text-muted">Área restrita à equipe REVENDA DIGITAL.</p>
           </div>
           <Field label="E-mail" htmlFor="admin-email">
-            <Input id="admin-email" type="email" autoComplete="username" placeholder="voce@kaiobez.com.br" autoFocus required {...form.register("email")} />
+            <Input id="admin-email" type="email" autoComplete="username" placeholder="voce@kaibez.com.br" autoFocus required {...form.register("email")} />
           </Field>
           <Field label="Senha" htmlFor="admin-password">
             <Input id="admin-password" type="password" autoComplete="current-password" placeholder="Sua senha" required {...form.register("password")} />
