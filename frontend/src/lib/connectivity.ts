@@ -7,11 +7,12 @@
  *   Enquanto estiver fora, checamos de novo a cada POLL_MS e avisamos quem assinou onRecover.
  */
 import { useSyncExternalStore } from "react";
+import { apiUrl } from "./endpoint";
 
 export type Connectivity = { online: boolean; serverDown: boolean };
 
 const POLL_MS = 8_000;
-const HEALTH_URL = "/api/health/live";
+const HEALTH_URL = apiUrl("/api/health/live");
 
 let state: Connectivity = { online: typeof navigator === "undefined" ? true : navigator.onLine, serverDown: false };
 const listeners = new Set<() => void>();

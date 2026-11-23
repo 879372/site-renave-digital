@@ -8,6 +8,7 @@
  */
 
 import { connectivity } from "./connectivity";
+import { apiUrl, CREDENTIALS } from "./endpoint";
 
 const GATEWAY_DOWN = new Set([502, 503, 504]);
 
@@ -88,7 +89,7 @@ export async function errorFrom(response: Response): Promise<ApiError> {
 
 export async function refreshAccess(): Promise<string | null> {
   if (!refreshing) {
-    refreshing = fetchApi("/api/auth/refresh", { method: "POST", credentials: "same-origin" })
+    refreshing = fetchApi(apiUrl("/api/auth/refresh"), { method: "POST", credentials: CREDENTIALS })
       .then(async (r) => (r.ok ? ((await r.json()).access as string) : null))
       .catch(() => null)
       .then((token) => {
@@ -112,7 +113,7 @@ type Options = {
 };
 
 export async function api<T = any>(path: string, opts: Options = {}, retried = false): Promise<T> {
-  const url = new URL(`/api${path}`, window.location.origin);
+  const url = apiUrl(`/api${path}`);
   Object.entries(opts.params ?? {}).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
   });
@@ -127,7 +128,7 @@ export async function api<T = any>(path: string, opts: Options = {}, retried = f
     body = JSON.stringify(opts.body);
   }
 
-  const response = await fetchApi(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: "same-origin" });
+  const response = await fetchApi(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: CREDENTIALS });
 
   if (response.status === 401 && opts.auth !== false && !retried) {
     const token = await refreshAccess();

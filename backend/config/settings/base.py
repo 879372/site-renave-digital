@@ -250,6 +250,9 @@ SPECTACULAR_SETTINGS = {
 }
 
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5180")
+# Sites das lojas (<slug>.revendadigital.kaibez.com.br) chamam as rotas públicas da API direto.
+_storefront = env("STOREFRONT_DOMAIN", "revendadigital.kaibez.com.br").replace(".", r"\.")
+CORS_ALLOWED_ORIGIN_REGEXES = [rf"^https://[a-z0-9-]+\.{_storefront}$"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = ["authorization", "content-type", "x-organization", "x-request-id", "idempotency-key"]
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS

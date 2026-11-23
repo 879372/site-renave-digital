@@ -34,6 +34,8 @@ Abre em http://localhost:5180. As chamadas para `/api` são repassadas para a AP
 
 O `vercel.json` publica `dist/` como SPA (todas as rotas, exceto `/api` e `/assets`, caem no `index.html`).
 
-A Vercel encaminha `/api/*` para o endereço HTTPS gerenciado da API, `https://api-renave-digital-production.up.railway.app` (Railway). O domínio público personalizado é `https://api.revendadigital.kaibez.com.br`; o proxy gerenciado mantém o app funcionando durante alterações de DNS. Assim o navegador fala só com o domínio do app, o que a sessão por cookie `SameSite=Strict` exige.
+**Variável de ambiente na Vercel:** `VITE_API_URL=https://api.revendadigital.kaibez.com.br` (vale no build; refaça o deploy depois de criar). Com ela, o navegador chama a API direto. O cookie de sessão `SameSite=Strict` continua funcionando porque `app.` e `api.` são o mesmo site (`kaibez.com.br`).
+
+Sem a variável, o app chama `/api` no próprio domínio e o `rewrite` do `vercel.json` repassa para a API (também usado no desenvolvimento, pelo proxy do Vite).
 
 Antes de publicar, preencha os dados do controlador em `src/lib/legal.ts`.

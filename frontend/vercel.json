@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://api-renave-digital-production.up.railway.app/api/:path*"
+      "destination": "https://api.revendadigital.kaibez.com.br/api/:path*"
     },
     {
       "source": "/((?!api/|assets/).*)",

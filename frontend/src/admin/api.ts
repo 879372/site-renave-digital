@@ -1,5 +1,6 @@
 /** Cliente da API administrativa: sessão separada da do lojista (token e cookie próprios). */
 import { errorFrom, fetchApi } from "@/lib/api";
+import { apiUrl, CREDENTIALS } from "@/lib/endpoint";
 import { connectivity } from "@/lib/connectivity";
 
 let accessToken: string | null = null;
@@ -19,7 +20,7 @@ export const adminSession = {
 
 export async function adminRefresh(): Promise<{ access: string; user: AdminUser } | null> {
   if (!refreshing) {
-    refreshing = fetchApi("/api/admin/auth/refresh", { method: "POST", credentials: "same-origin" })
+    refreshing = fetchApi(apiUrl("/api/admin/auth/refresh"), { method: "POST", credentials: CREDENTIALS })
       .then(async (r) => (r.ok ? r.json() : null))
       .catch(() => null)
       .then((data) => {
@@ -36,7 +37,7 @@ export async function adminRefresh(): Promise<{ access: string; user: AdminUser 
 type Options = { method?: string; body?: unknown; params?: Record<string, string | number | undefined | null>; auth?: boolean };
 
 export async function adminApi<T = any>(path: string, opts: Options = {}, retried = false): Promise<T> {
-  const url = new URL(`/api/admin${path}`, window.location.origin);
+  const url = apiUrl(`/api/admin${path}`);
   Object.entries(opts.params ?? {}).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
   });
@@ -47,7 +48,7 @@ export async function adminApi<T = any>(path: string, opts: Options = {}, retrie
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(opts.body);
   }
-  const response = await fetchApi(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: "same-origin" });
+  const response = await fetchApi(url, { method: opts.method ?? (body ? "POST" : "GET"), headers, body, credentials: CREDENTIALS });
   if (response.status === 401 && opts.auth !== false && !retried) {
     if (await adminRefresh()) return adminApi<T>(path, opts, true);
     await connectivity.settle();
