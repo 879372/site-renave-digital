@@ -83,9 +83,9 @@ cd frontend && npm run typecheck && npm run build
 ## Domínios
 
 - Site: https://renavedigital.kaibez.com.br (`dist/`)
-- Plataforma: https://app.renavedigital.kaibez.com.br (`frontend/` + API em `/api`)
+- Plataforma: https://app.revendadigital.kaibez.com.br (`frontend/` + API em `/api`)
 
-Em produção, defina no backend: `DJANGO_ALLOWED_HOSTS=app.renavedigital.kaibez.com.br`, `CORS_ALLOWED_ORIGINS=https://app.renavedigital.kaibez.com.br` e `PUBLIC_API_URL=https://app.renavedigital.kaibez.com.br`.
+Em produção, defina no backend: `DJANGO_ALLOWED_HOSTS=app.revendadigital.kaibez.com.br`, `CORS_ALLOWED_ORIGINS=https://app.revendadigital.kaibez.com.br` e `PUBLIC_API_URL=https://app.revendadigital.kaibez.com.br`.
 
 ## E-mails
 

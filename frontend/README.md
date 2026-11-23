@@ -1,6 +1,6 @@
 # app-renave-digital
 
-Aplicação web da plataforma REVENDA DIGITAL (https://app.renavedigital.kaibez.com.br): consultas veiculares, estoque RENAVE, comunicação de venda, NF-e de veículos e painel administrativo (`/admin`).
+Aplicação web da plataforma REVENDA DIGITAL (https://app.revendadigital.kaibez.com.br): consultas veiculares, estoque RENAVE, comunicação de venda, NF-e de veículos e painel administrativo (`/admin`).
 
 React 18 + TypeScript + Vite + Tailwind CSS + TanStack Query.
 
@@ -34,6 +34,6 @@ Abre em http://localhost:5180. As chamadas para `/api` são repassadas para a AP
 
 O `vercel.json` publica `dist/` como SPA (todas as rotas, exceto `/api` e `/assets`, caem no `index.html`).
 
-A Vercel encaminha `/api/*` para a API em `https://api.renavedigital.kaibez.com.br` (Railway). Assim o navegador fala só com o domínio do app, o que a sessão por cookie `SameSite=Strict` exige.
+A Vercel encaminha `/api/*` para a API em `https://api.revendadigital.kaibez.com.br` (Railway). Assim o navegador fala só com o domínio do app, o que a sessão por cookie `SameSite=Strict` exige.
 
 Antes de publicar, preencha os dados do controlador em `src/lib/legal.ts`.

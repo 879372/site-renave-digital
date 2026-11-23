@@ -79,9 +79,9 @@ Os dois serviços usam o mesmo `Dockerfile`; o que muda é a configuração de c
    | `REDIS_URL` | `${{Redis.REDIS_URL}}` |
    | `DJANGO_SECRET_KEY` | valor aleatório longo |
    | `VAULT_MASTER_KEY` | gere com o comando da seção "Rodar localmente" e **guarde uma cópia em local seguro** |
-   | `DJANGO_ALLOWED_HOSTS` | `api.renavedigital.kaibez.com.br` |
-   | `CORS_ALLOWED_ORIGINS` | `https://app.renavedigital.kaibez.com.br` |
-   | `PUBLIC_API_URL` | `https://app.renavedigital.kaibez.com.br` |
+   | `DJANGO_ALLOWED_HOSTS` | `api.revendadigital.kaibez.com.br` |
+   | `CORS_ALLOWED_ORIGINS` | `https://app.revendadigital.kaibez.com.br` |
+   | `PUBLIC_API_URL` | `https://app.revendadigital.kaibez.com.br` |
    | `DJANGO_ADMIN_URL` | caminho secreto para o admin técnico do Django (ex.: `interno-8f3k2/`) |
    | `RESEND_API_KEY` | chave do Resend |
    | `BUSCARS_API_KEY`, `BUSCARS_WEBHOOK_SECRET` | painel BusCars |
@@ -89,11 +89,11 @@ Os dois serviços usam o mesmo `Dockerfile`; o que muda é a configuração de c
    | `GERANET_API_KEY`, `GERANET_AMBIENTE` | Geranet (`1` produção, `2` homologação) |
    | `SENTRY_DSN` | opcional |
 
-4. Em *Settings → Networking → Custom Domain*, adicione `api.renavedigital.kaibez.com.br` e crie no DNS (Registro.br, zona `kaibez.com.br`) o registro **CNAME** `api.renavedigital` apontando para o destino que o Railway mostrar.
+4. Em *Settings → Networking → Custom Domain*, adicione `api.revendadigital.kaibez.com.br` e crie no DNS (Registro.br, zona `kaibez.com.br`) o registro **CNAME** `api.renavedigital` apontando para o destino que o Railway mostrar.
 5. **Worker:** *New* → *GitHub repo* → o mesmo repositório, com o start command da tabela acima e as variáveis referenciando as da API (`${{api-renave-digital.NOME}}`). O worker não precisa de domínio.
 6. Cada deploy da API roda `scripts/release.sh` (migrações + catálogo inicial) antes de subir. O healthcheck é `/api/health/live`; `/api/health/ready` também verifica banco e Redis.
 7. Crie o primeiro administrador: no serviço da API, *⋯ → Shell* (ou `railway run`) e `python manage.py createsuperuser`.
 
-O app (Vercel) encaminha `https://app.renavedigital.kaibez.com.br/api/*` para `https://api.renavedigital.kaibez.com.br`, então o navegador fala só com o domínio do app.
+O app (Vercel) encaminha `https://app.revendadigital.kaibez.com.br/api/*` para `https://api.revendadigital.kaibez.com.br`, então o navegador fala só com o domínio do app.
 
-Webhook de consultas para cadastrar no provedor: `https://app.renavedigital.kaibez.com.br/api/hooks/consultas`.
+Webhook de consultas para cadastrar no provedor: `https://app.revendadigital.kaibez.com.br/api/hooks/consultas`.
