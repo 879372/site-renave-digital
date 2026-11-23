@@ -39,9 +39,9 @@ function Simulador() {
         <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
           <Field label="Valor do carro"><MoneyInput value={f.price_cents} onChange={(c) => setF({ ...f, price_cents: c })} /></Field>
           <Field label="Entrada"><MoneyInput value={f.down_cents} onChange={(c) => setF({ ...f, down_cents: c })} /></Field>
-          <Field label="Taxa ao mês (%)" htmlFor="s-r"><Input id="s-r" inputMode="decimal" value={(f.monthly_rate_bp / 100).toString().replace(".", ",")} onChange={(e) => setF({ ...f, monthly_rate_bp: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
+          <Field label="Taxa ao mês (%)" htmlFor="s-r"><Input placeholder="1,99" id="s-r" inputMode="decimal" value={(f.monthly_rate_bp / 100).toString().replace(".", ",")} onChange={(e) => setF({ ...f, monthly_rate_bp: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
           <Field label="Tarifas (cadastro, registro)"><MoneyInput value={f.fees_cents} onChange={(c) => setF({ ...f, fees_cents: c })} /></Field>
-          <Field label="IOF (%)" htmlFor="s-i"><Input id="s-i" inputMode="decimal" value={(f.iof_pct_bp / 100).toString().replace(".", ",")} onChange={(e) => setF({ ...f, iof_pct_bp: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
+          <Field label="IOF (%)" htmlFor="s-i"><Input placeholder="0,38" id="s-i" inputMode="decimal" value={(f.iof_pct_bp / 100).toString().replace(".", ",")} onChange={(e) => setF({ ...f, iof_pct_bp: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
           <Button type="submit" className="w-full" loading={m.isPending}><Calculator className="size-4" /> Simular</Button>
         </form>
       </Card>
@@ -109,15 +109,15 @@ function FichaForm({ open, onOpenChange }: { open: boolean; onOpenChange: (b: bo
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
         <PessoaPicker value={f.cliente} onChange={(p) => setF({ ...f, cliente: p })} required />
         <div className="grid gap-4 sm:grid-cols-3">
-          <Field label="Nome da mãe" htmlFor="fi-m"><Input id="fi-m" value={f.mother_name} onChange={(e) => setF({ ...f, mother_name: e.target.value })} /></Field>
+          <Field label="Nome da mãe" htmlFor="fi-m"><Input placeholder="Nome completo da mãe" id="fi-m" value={f.mother_name} onChange={(e) => setF({ ...f, mother_name: e.target.value })} /></Field>
           <Field label="Ocupação" htmlFor="fi-o"><Select id="fi-o" value={f.occupation} onChange={(e) => setF({ ...f, occupation: e.target.value })}><option value="clt">Assalariado (CLT)</option><option value="autonomo">Autônomo</option><option value="empresario">Empresário</option><option value="aposentado">Aposentado</option><option value="servidor">Servidor público</option><option value="outro">Outro</option></Select></Field>
           <Field label="Renda mensal"><MoneyInput value={f.monthly_income_cents} onChange={(c) => setF({ ...f, monthly_income_cents: c })} /></Field>
-          <Field label="Empresa" htmlFor="fi-e"><Input id="fi-e" value={f.employer} onChange={(e) => setF({ ...f, employer: e.target.value })} /></Field>
-          <Field label="Cargo" htmlFor="fi-c"><Input id="fi-c" value={f.job_title} onChange={(e) => setF({ ...f, job_title: e.target.value })} /></Field>
-          <Field label="Referência (nome e telefone)" htmlFor="fi-r"><Input id="fi-r" value={f.reference_name} onChange={(e) => setF({ ...f, reference_name: e.target.value })} /></Field>
+          <Field label="Empresa" htmlFor="fi-e"><Input placeholder="Empresa onde trabalha" id="fi-e" value={f.employer} onChange={(e) => setF({ ...f, employer: e.target.value })} /></Field>
+          <Field label="Cargo" htmlFor="fi-c"><Input placeholder="Vendedor, motorista, gerente…" id="fi-c" value={f.job_title} onChange={(e) => setF({ ...f, job_title: e.target.value })} /></Field>
+          <Field label="Referência (nome e telefone)" htmlFor="fi-r"><Input placeholder="João Souza (84) 99999-9999" id="fi-r" value={f.reference_name} onChange={(e) => setF({ ...f, reference_name: e.target.value })} /></Field>
           <Field label="Valor do carro"><MoneyInput value={f.vehicle_price_cents} onChange={(c) => setF({ ...f, vehicle_price_cents: c })} /></Field>
           <Field label="Entrada"><MoneyInput value={f.down_payment_cents} onChange={(c) => setF({ ...f, down_payment_cents: c })} /></Field>
-          <Field label="Prazo (meses)" htmlFor="fi-t"><Input id="fi-t" inputMode="numeric" value={f.term_months} onChange={(e) => setF({ ...f, term_months: Number(e.target.value.replace(/\D/g, "") || 48) })} /></Field>
+          <Field label="Prazo (meses)" htmlFor="fi-t"><Input placeholder="48" id="fi-t" inputMode="numeric" value={f.term_months} onChange={(e) => setF({ ...f, term_months: Number(e.target.value.replace(/\D/g, "") || 48) })} /></Field>
         </div>
         <p className="text-xs text-muted">Dados pessoais do cliente: use só para a análise de crédito e não compartilhe fora dos bancos parceiros.</p>
         <Button type="submit" disabled={!f.cliente} loading={m.isPending}>Salvar ficha</Button>
@@ -158,9 +158,9 @@ function FichaDetail({ ficha, onClose }: { ficha: Ficha | null; onClose: () => v
           </Table>
         )}
         <form className="grid items-end gap-3 rounded-lg border border-line p-3 sm:grid-cols-6" onSubmit={(e) => { e.preventDefault(); add.mutate(); }}>
-          <Field label="Banco" className="sm:col-span-2"><Input required value={p.bank} onChange={(e) => setP({ ...p, bank: e.target.value })} /></Field>
-          <Field label="Taxa a.m. (%)"><Input inputMode="decimal" value={(p.monthly_rate_bp / 100).toString().replace(".", ",")} onChange={(e) => setP({ ...p, monthly_rate_bp: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
-          <Field label="Prazo"><Input inputMode="numeric" value={p.term_months} onChange={(e) => setP({ ...p, term_months: Number(e.target.value.replace(/\D/g, "") || 48) })} /></Field>
+          <Field label="Banco" className="sm:col-span-2"><Input placeholder="Banco Pan, BV, Santander…" required value={p.bank} onChange={(e) => setP({ ...p, bank: e.target.value })} /></Field>
+          <Field label="Taxa a.m. (%)"><Input placeholder="1,99" inputMode="decimal" value={(p.monthly_rate_bp / 100).toString().replace(".", ",")} onChange={(e) => setP({ ...p, monthly_rate_bp: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
+          <Field label="Prazo"><Input placeholder="48" inputMode="numeric" value={p.term_months} onChange={(e) => setP({ ...p, term_months: Number(e.target.value.replace(/\D/g, "") || 48) })} /></Field>
           <Field label="Parcela"><MoneyInput value={p.installment_cents} onChange={(c) => setP({ ...p, installment_cents: c })} /></Field>
           <Field label="Retorno"><MoneyInput value={p.dealer_return_cents} onChange={(c) => setP({ ...p, dealer_return_cents: c })} /></Field>
           <Button type="submit" className="sm:col-span-6" variant="secondary" loading={add.isPending}>Registrar proposta enviada</Button>

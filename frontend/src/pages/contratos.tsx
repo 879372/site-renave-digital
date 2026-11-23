@@ -82,8 +82,8 @@ function Modelos() {
       <Modal open={!!edit} onOpenChange={(v) => !v && setEdit(null)} title="Editar modelo" wide>
         {edit && (
           <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(edit); }}>
-            <Field label="Título" htmlFor="m-t"><Input id="m-t" value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} /></Field>
-            <Field label="Texto" htmlFor="m-b" hint={`Variáveis: ${VARS}`}><Textarea id="m-b" rows={18} className="font-mono text-xs" value={edit.body} onChange={(e) => setEdit({ ...edit, body: e.target.value })} /></Field>
+            <Field label="Título" htmlFor="m-t"><Input placeholder="Contrato de compra e venda" id="m-t" value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} /></Field>
+            <Field label="Texto" htmlFor="m-b" hint={`Variáveis: ${VARS}`}><Textarea placeholder="Texto do contrato. Use variáveis como {{cliente.nome}} e {{veiculo.placa}}." id="m-b" rows={18} className="font-mono text-xs" value={edit.body} onChange={(e) => setEdit({ ...edit, body: e.target.value })} /></Field>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-brand" checked={edit.is_active} onChange={(e) => setEdit({ ...edit, is_active: e.target.checked })} /> Ativo</label>
             <Button type="submit" loading={save.isPending}>Salvar modelo</Button>
           </form>
@@ -132,7 +132,7 @@ export function DocumentoPage() {
         {d.signature_links.length > 0 && <Card title="Links de assinatura" className="mb-4"><ul className="space-y-1 text-sm">{d.signature_links.map((s) => <li key={s.url}>{s.name}: <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-brand break-all">{s.url}</a></li>)}</ul>{d.signed_file_url && <a href={d.signed_file_url} target="_blank" rel="noopener noreferrer" className="mt-2 block font-medium text-brand">Baixar documento assinado</a>}</Card>}
       </div>
       {editing ? (
-        <Textarea rows={30} className="font-mono text-xs" value={content} onChange={(e) => setContent(e.target.value)} />
+        <Textarea placeholder="Texto do documento" rows={30} className="font-mono text-xs" value={content} onChange={(e) => setContent(e.target.value)} />
       ) : (
         <article className="mx-auto max-w-3xl rounded-xl border border-line bg-white p-10 text-[13px] leading-6 whitespace-pre-wrap print:border-0 print:p-0">{d.content}</article>
       )}

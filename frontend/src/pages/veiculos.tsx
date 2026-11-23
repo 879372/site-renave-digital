@@ -77,7 +77,24 @@ export const STATUS_TONE: Record<string, "green" | "yellow" | "blue" | "gray" | 
   transferido: "gray",
 };
 
+const PH: Record<string, string> = {
+  marca: "Chevrolet",
+  modelo: "Onix",
+  versao: "LT 1.0 Turbo",
+  ano_fabricacao: "2021",
+  ano_modelo: "2022",
+  cor: "Prata",
+  km: "45000",
+  combustivel: "Flex",
+  cambio: "Manual ou automático",
+  renavam: "11 dígitos",
+  chassi: "17 caracteres",
+  location: "Pátio 2, vaga 14",
+};
+
 const OPCIONAIS = ["Ar-condicionado", "Direção hidráulica/elétrica", "Vidros elétricos", "Travas elétricas", "Airbag", "Freios ABS", "Multimídia", "Câmera de ré", "Sensor de estacionamento", "Bancos de couro", "Rodas de liga", "Teto solar", "Piloto automático", "Chave presencial", "Único dono", "Manual e chave reserva", "IPVA pago"];
+
+export { PH as VEHICLE_PLACEHOLDERS };
 
 export function VeiculosPage() {
   const { organization, can } = useAuth();
@@ -223,12 +240,12 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSaved }: { open: bo
 
   const text = (k: keyof Form, label: string, props: Record<string, unknown> = {}) => (
     <Field label={label} htmlFor={`v-${k}`} error={errors[k as string]}>
-      <Input id={`v-${k}`} value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value)} aria-invalid={!!errors[k as string]} {...props} />
+      <Input id={`v-${k}`} placeholder={PH[k as string]} value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value)} aria-invalid={!!errors[k as string]} {...props} />
     </Field>
   );
   const num = (k: keyof Form, label: string) => (
     <Field label={label} htmlFor={`v-${k}`} error={errors[k as string]}>
-      <Input id={`v-${k}`} inputMode="numeric" value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value.replace(/\D/g, "") ? Number(e.target.value.replace(/\D/g, "")) : null)} />
+      <Input id={`v-${k}`} inputMode="numeric" placeholder={PH[k as string]} value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value.replace(/\D/g, "") ? Number(e.target.value.replace(/\D/g, "")) : null)} />
     </Field>
   );
 
@@ -300,7 +317,7 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSaved }: { open: bo
                 <Field label="Valor líquido ao dono"><MoneyInput value={f.consignment_value} onChange={(c) => set("consignment_value", c)} /></Field>
               ) : (
                 <Field label="Comissão da loja (%)" htmlFor="v-cv">
-                  <Input id="v-cv" inputMode="decimal" value={f.consignment_value ? String(f.consignment_value / 100).replace(".", ",") : ""} onChange={(e) => set("consignment_value", Math.round(Number(e.target.value.replace(",", ".") || 0) * 100))} />
+                  <Input placeholder="8" id="v-cv" inputMode="decimal" value={f.consignment_value ? String(f.consignment_value / 100).replace(".", ",") : ""} onChange={(e) => set("consignment_value", Math.round(Number(e.target.value.replace(",", ".") || 0) * 100))} />
                 </Field>
               )}
               <div className="sm:col-span-2"><PessoaPicker label="Dono do veículo" value={f.consignorRef ?? null} onChange={(p) => set("consignorRef", p)} required /></div>
@@ -623,16 +640,16 @@ function RenaveTab({ v, onChange }: { v: Vehicle; onChange: () => void }) {
       <Modal open={open} onOpenChange={setOpen} title="Entrada no RENAVE" description={`${v.title} · ${plate(v.placa)}`} wide>
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); entry.mutate(); }}>
           <Field label="Tipo de entrada" htmlFor="r-op"><Select id="r-op" value={f.tipo_operacao} onChange={(e) => setF({ ...f, tipo_operacao: e.target.value })}><option value="compra_veiculo">Compra de terceiro</option><option value="entrada_veiculo_proprio">Veículo próprio da loja</option></Select></Field>
-          <Field label="RENAVAM" htmlFor="r-rv"><Input id="r-rv" required value={f.renavam} onChange={(e) => setF({ ...f, renavam: e.target.value })} /></Field>
+          <Field label="RENAVAM" htmlFor="r-rv"><Input placeholder="11 dígitos" id="r-rv" required value={f.renavam} onChange={(e) => setF({ ...f, renavam: e.target.value })} /></Field>
           <Field label="Tipo de CRV" htmlFor="r-tc"><Select id="r-tc" value={f.tipo_crv} onChange={(e) => setF({ ...f, tipo_crv: e.target.value })}><option value="DIGITAL">Digital (CRV-e)</option><option value="FISICO">Físico</option></Select></Field>
-          <Field label="Número do CRV" htmlFor="r-crv"><Input id="r-crv" required value={f.crv} onChange={(e) => setF({ ...f, crv: e.target.value })} /></Field>
-          <Field label="Código de segurança do CRV" htmlFor="r-cs"><Input id="r-cs" required value={f.codigo_seguranca_crv} onChange={(e) => setF({ ...f, codigo_seguranca_crv: e.target.value })} /></Field>
-          <Field label="Quilometragem" htmlFor="r-km"><Input id="r-km" inputMode="numeric" value={f.km} onChange={(e) => setF({ ...f, km: Number(e.target.value.replace(/\D/g, "") || 0) })} /></Field>
+          <Field label="Número do CRV" htmlFor="r-crv"><Input placeholder="Número do CRV" id="r-crv" required value={f.crv} onChange={(e) => setF({ ...f, crv: e.target.value })} /></Field>
+          <Field label="Código de segurança do CRV" htmlFor="r-cs"><Input placeholder="Código de segurança do CRV" id="r-cs" required value={f.codigo_seguranca_crv} onChange={(e) => setF({ ...f, codigo_seguranca_crv: e.target.value })} /></Field>
+          <Field label="Quilometragem" htmlFor="r-km"><Input placeholder="45000" id="r-km" inputMode="numeric" value={f.km} onChange={(e) => setF({ ...f, km: Number(e.target.value.replace(/\D/g, "") || 0) })} /></Field>
           <Field label="Data e hora da medição" htmlFor="r-dk"><Input id="r-dk" type="datetime-local" value={f.data_hora_km} onChange={(e) => setF({ ...f, data_hora_km: e.target.value })} /></Field>
           <Field label="Data da compra" htmlFor="r-dc"><Input id="r-dc" type="date" value={f.data_compra} onChange={(e) => setF({ ...f, data_compra: e.target.value })} /></Field>
           {f.tipo_operacao === "compra_veiculo" && (
             <>
-              <Field label="CPF/CNPJ do vendedor" htmlFor="r-vd"><Input id="r-vd" required value={f.vendedor_documento} onChange={(e) => setF({ ...f, vendedor_documento: e.target.value })} /></Field>
+              <Field label="CPF/CNPJ do vendedor" htmlFor="r-vd"><Input placeholder="000.000.000-00" id="r-vd" required value={f.vendedor_documento} onChange={(e) => setF({ ...f, vendedor_documento: e.target.value })} /></Field>
               <Field label="Valor da compra"><MoneyInput value={f.valor_compra_cents} onChange={(c) => setF({ ...f, valor_compra_cents: c })} /></Field>
             </>
           )}

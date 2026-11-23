@@ -152,10 +152,10 @@ export function LojasPage() {
         </Card>
         <Modal open={open} onOpenChange={setOpen} title="Nova filial">
           <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
-            <Field label="CNPJ" htmlFor="fl-c"><Input id="fl-c" required value={f.cnpj} onChange={(e) => setF({ ...f, cnpj: e.target.value })} /></Field>
-            <Field label="Razão social" htmlFor="fl-r"><Input id="fl-r" required value={f.legal_name} onChange={(e) => setF({ ...f, legal_name: e.target.value })} /></Field>
-            <Field label="Nome fantasia" htmlFor="fl-n"><Input id="fl-n" value={f.trade_name} onChange={(e) => setF({ ...f, trade_name: e.target.value })} /></Field>
-            <div className="grid grid-cols-[80px_1fr] gap-3"><Field label="UF" htmlFor="fl-u"><Input id="fl-u" required value={f.uf} onChange={(e) => setF({ ...f, uf: e.target.value.toUpperCase().slice(0, 2) })} /></Field><Field label="Cidade" htmlFor="fl-ci"><Input id="fl-ci" required value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} /></Field></div>
+            <Field label="CNPJ" htmlFor="fl-c"><Input placeholder="00.000.000/0000-00" id="fl-c" required value={f.cnpj} onChange={(e) => setF({ ...f, cnpj: e.target.value })} /></Field>
+            <Field label="Razão social" htmlFor="fl-r"><Input placeholder="Loja Exemplo Filial LTDA" id="fl-r" required value={f.legal_name} onChange={(e) => setF({ ...f, legal_name: e.target.value })} /></Field>
+            <Field label="Nome fantasia" htmlFor="fl-n"><Input placeholder="Loja Exemplo Centro" id="fl-n" value={f.trade_name} onChange={(e) => setF({ ...f, trade_name: e.target.value })} /></Field>
+            <div className="grid grid-cols-[80px_1fr] gap-3"><Field label="UF" htmlFor="fl-u"><Input placeholder="RN" id="fl-u" required value={f.uf} onChange={(e) => setF({ ...f, uf: e.target.value.toUpperCase().slice(0, 2) })} /></Field><Field label="Cidade" htmlFor="fl-ci"><Input placeholder="Mossoró" id="fl-ci" required value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} /></Field></div>
             <Button type="submit" className="w-full" loading={create.isPending}>Criar filial</Button>
           </form>
         </Modal>

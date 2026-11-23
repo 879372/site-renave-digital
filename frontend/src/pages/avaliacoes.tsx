@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { date, money, plate } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
 
-import { FipePicker } from "./veiculos";
+import { FipePicker, VEHICLE_PLACEHOLDERS as PH } from "./veiculos";
 import { ask } from "@/components/confirm";
 
 type Avaliacao = {
@@ -126,10 +126,10 @@ export function AvaliacaoPage() {
   });
   if (!isNew && q.isLoading) return <Spinner />;
   const input = (k: keyof Avaliacao, label: string, props: Record<string, unknown> = {}) => (
-    <Field label={label} htmlFor={`a-${k}`}><Input id={`a-${k}`} disabled={locked} value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value)} {...props} /></Field>
+    <Field label={label} htmlFor={`a-${k}`}><Input id={`a-${k}`} placeholder={PH[k as string]} disabled={locked} value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value)} {...props} /></Field>
   );
   const numeric = (k: keyof Avaliacao, label: string) => (
-    <Field label={label} htmlFor={`a-${k}`}><Input id={`a-${k}`} inputMode="numeric" disabled={locked} value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value.replace(/\D/g, "") ? Number(e.target.value.replace(/\D/g, "")) : null)} /></Field>
+    <Field label={label} htmlFor={`a-${k}`}><Input id={`a-${k}`} inputMode="numeric" placeholder={PH[k as string]} disabled={locked} value={(f[k] as any) ?? ""} onChange={(e) => set(k, e.target.value.replace(/\D/g, "") ? Number(e.target.value.replace(/\D/g, "")) : null)} /></Field>
   );
   const suggested = f.fipe_price_cents ? Math.max(Math.floor((f.fipe_price_cents * 85) / 100) - (f.estimated_repairs_cents ?? 0), 0) : null;
   return (

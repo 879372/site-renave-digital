@@ -280,7 +280,7 @@ export function Pagamentos({ v, editable, onSaved }: { v: Venda; editable: boole
                 </Field>
               )}
               {p.method === "financiamento" && <Field label="Banco"><Input value={p.bank} disabled={!editable} onChange={(e) => upd(i, { bank: e.target.value })} placeholder="Banco / financeira" /></Field>}
-              {["boleto", "credito"].includes(p.method) && <Field label="Parcelas"><Input inputMode="numeric" value={p.installments} disabled={!editable} onChange={(e) => upd(i, { installments: Number(e.target.value.replace(/\D/g, "") || 1) })} /></Field>}
+              {["boleto", "credito"].includes(p.method) && <Field label="Parcelas"><Input placeholder="1" inputMode="numeric" value={p.installments} disabled={!editable} onChange={(e) => upd(i, { installments: Number(e.target.value.replace(/\D/g, "") || 1) })} /></Field>}
               {["boleto", "credito", "financiamento"].includes(p.method) && <Field label="1º vencimento"><Input type="date" value={p.first_due ?? ""} disabled={!editable} onChange={(e) => upd(i, { first_due: e.target.value || null })} /></Field>}
             </div>
           </div>
@@ -348,7 +348,7 @@ function RenaveSaidaModal({ open, onOpenChange, v, onDone }: { open: boolean; on
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Saída no RENAVE" description="Os dados do comprador e da venda vêm do cadastro. Custa R$ 30,00.">
       <div className="space-y-4">
-        <Field label="Código de segurança do CRV" htmlFor="rs-code"><Input id="rs-code" value={code} onChange={(e) => setCode(e.target.value)} /></Field>
+        <Field label="Código de segurança do CRV" htmlFor="rs-code"><Input placeholder="Código no CRV" id="rs-code" value={code} onChange={(e) => setCode(e.target.value)} /></Field>
         <Button className="w-full" disabled={!code} loading={m.isPending} onClick={() => m.mutate()}>Enviar saída</Button>
       </div>
     </Modal>

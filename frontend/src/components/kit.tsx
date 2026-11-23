@@ -195,6 +195,21 @@ export type Pessoa = {
   observacoes: string;
 };
 
+const PESSOA_PH: Partial<Record<keyof Pessoa, string>> = {
+  nome: "Maria da Silva ou Empresa LTDA",
+  documento: "000.000.000-00",
+  rg_ie: "RG ou inscrição estadual",
+  telefone: "(84) 99999-9999",
+  email: "maria@email.com",
+  cep: "59000-000",
+  logradouro: "Rua, avenida…",
+  numero: "123",
+  complemento: "Apto 101, bloco B",
+  bairro: "Centro",
+  cidade: "Natal",
+  uf: "RN",
+};
+
 const EMPTY: Omit<Pessoa, "id"> = {
   documento: "",
   nome: "",
@@ -253,7 +268,7 @@ export function PessoaModal({ open, onOpenChange, pessoa, initialName, tipo, onS
   };
   const text = (k: keyof typeof form, label: string, extra: Partial<{ placeholder: string; mask: (v: string) => string; className: string; onBlur: () => void }> = {}) => (
     <Field label={label} htmlFor={`p-${k}`} error={errors[k]} className={extra.className}>
-      <Input id={`p-${k}`} value={(form[k] as string) ?? ""} placeholder={extra.placeholder} onBlur={extra.onBlur} onChange={(e) => set(k, extra.mask ? extra.mask(e.target.value) : e.target.value)} aria-invalid={!!errors[k]} />
+      <Input id={`p-${k}`} value={(form[k] as string) ?? ""} placeholder={extra.placeholder ?? PESSOA_PH[k]} onBlur={extra.onBlur} onChange={(e) => set(k, extra.mask ? extra.mask(e.target.value) : e.target.value)} aria-invalid={!!errors[k]} />
     </Field>
   );
   return (

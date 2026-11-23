@@ -42,18 +42,18 @@ export function SitePage() {
               <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
                 <Field label="Endereço do site" htmlFor="s-slug" error={errors.slug} hint="Letras minúsculas, números e hífen.">
                   <div className="flex items-center gap-2">
-                    <Input id="s-slug" disabled={!manage} value={f.slug ?? ""} onChange={(e) => set("slug", e.target.value.toLowerCase())} className="max-w-56" />
+                    <Input placeholder="minhaloja" id="s-slug" disabled={!manage} value={f.slug ?? ""} onChange={(e) => set("slug", e.target.value.toLowerCase())} className="max-w-56" />
                     <span className="text-sm text-muted">.revendadigital.kaibez.com.br</span>
                   </div>
                 </Field>
-                <Field label="Nome no site" htmlFor="s-t"><Input id="s-t" disabled={!manage} required value={f.title ?? ""} onChange={(e) => set("title", e.target.value)} /></Field>
-                <Field label="Sobre a loja" htmlFor="s-a"><Textarea id="s-a" disabled={!manage} rows={3} value={f.about ?? ""} onChange={(e) => set("about", e.target.value)} /></Field>
+                <Field label="Nome no site" htmlFor="s-t"><Input placeholder="Minha Loja Veículos" id="s-t" disabled={!manage} required value={f.title ?? ""} onChange={(e) => set("title", e.target.value)} /></Field>
+                <Field label="Sobre a loja" htmlFor="s-a"><Textarea placeholder="Há 10 anos vendendo seminovos revisados e com garantia." id="s-a" disabled={!manage} rows={3} value={f.about ?? ""} onChange={(e) => set("about", e.target.value)} /></Field>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="WhatsApp" htmlFor="s-w"><Input id="s-w" disabled={!manage} value={maskPhone(f.whatsapp ?? "")} onChange={(e) => set("whatsapp", e.target.value)} /></Field>
-                  <Field label="Telefone" htmlFor="s-p"><Input id="s-p" disabled={!manage} value={maskPhone(f.phone ?? "")} onChange={(e) => set("phone", e.target.value)} /></Field>
-                  <Field label="E-mail" htmlFor="s-e"><Input id="s-e" disabled={!manage} value={f.email ?? ""} onChange={(e) => set("email", e.target.value)} /></Field>
+                  <Field label="WhatsApp" htmlFor="s-w"><Input placeholder="(84) 99999-9999" id="s-w" disabled={!manage} value={maskPhone(f.whatsapp ?? "")} onChange={(e) => set("whatsapp", e.target.value)} /></Field>
+                  <Field label="Telefone" htmlFor="s-p"><Input placeholder="(84) 3333-3333" id="s-p" disabled={!manage} value={maskPhone(f.phone ?? "")} onChange={(e) => set("phone", e.target.value)} /></Field>
+                  <Field label="E-mail" htmlFor="s-e"><Input placeholder="contato@minhaloja.com.br" id="s-e" disabled={!manage} value={f.email ?? ""} onChange={(e) => set("email", e.target.value)} /></Field>
                   <Field label="Instagram" htmlFor="s-i"><Input id="s-i" disabled={!manage} value={f.instagram ?? ""} onChange={(e) => set("instagram", e.target.value)} placeholder="@sualoja" /></Field>
-                  <Field label="Endereço" htmlFor="s-ad" className="sm:col-span-2"><Input id="s-ad" disabled={!manage} value={f.address ?? ""} onChange={(e) => set("address", e.target.value)} /></Field>
+                  <Field label="Endereço" htmlFor="s-ad" className="sm:col-span-2"><Input placeholder="Av. Exemplo, 123 — Centro, Natal/RN" id="s-ad" disabled={!manage} value={f.address ?? ""} onChange={(e) => set("address", e.target.value)} /></Field>
                   <Field label="Cor de destaque" htmlFor="s-c" error={errors.accent_color}><Input id="s-c" type="color" disabled={!manage} value={f.accent_color ?? "#047857"} onChange={(e) => set("accent_color", e.target.value)} className="h-10 w-20 p-1" /></Field>
                 </div>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-brand" disabled={!manage} checked={!!f.is_published} onChange={(e) => set("is_published", e.target.checked)} /> Site no ar</label>

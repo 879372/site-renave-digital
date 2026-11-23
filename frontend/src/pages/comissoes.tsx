@@ -67,7 +67,7 @@ export function ComissoesPage() {
                 {r.mode === "fixo" ? (
                   <Field label="Valor por carro"><MoneyInput value={r.value} disabled={!manage} onChange={(c) => setR({ ...r, value: c })} /></Field>
                 ) : (
-                  <Field label="Percentual (%)" htmlFor="cr-v"><Input id="cr-v" disabled={!manage} inputMode="decimal" value={pct ?? ""} onChange={(e) => setR({ ...r, value: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
+                  <Field label="Percentual (%)" htmlFor="cr-v"><Input placeholder="10" id="cr-v" disabled={!manage} inputMode="decimal" value={pct ?? ""} onChange={(e) => setR({ ...r, value: Math.round(Number(e.target.value.replace(",", ".") || 0) * 100) })} /></Field>
                 )}
                 <Field label="Comissão mínima por carro"><MoneyInput value={r.min_cents} disabled={!manage} onChange={(c) => setR({ ...r, min_cents: c })} /></Field>
                 {manage && <Button type="submit" variant="secondary" className="w-full" loading={saveRule.isPending}>Salvar regra</Button>}

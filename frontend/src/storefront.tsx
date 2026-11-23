@@ -135,9 +135,9 @@ function Detail({ slug, site, base }: { slug: string; site: Site; base: string }
             {sent ? <p className="text-sm">Recebemos seu contato. A loja vai falar com você em breve.</p> : (
               <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); contact.mutate(); }}>
                 <h2 className="font-semibold">Quero mais informações</h2>
-                <Field label="Nome" htmlFor="ct-n"><Input id="ct-n" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
-                <Field label="Telefone / WhatsApp" htmlFor="ct-p"><Input id="ct-p" required value={f.phone} onChange={(e) => setF({ ...f, phone: maskPhone(e.target.value) })} /></Field>
-                <Field label="Mensagem (opcional)" htmlFor="ct-m"><Textarea id="ct-m" rows={2} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} /></Field>
+                <Field label="Nome" htmlFor="ct-n"><Input placeholder="Seu nome" id="ct-n" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
+                <Field label="Telefone / WhatsApp" htmlFor="ct-p"><Input placeholder="(84) 99999-9999" id="ct-p" required value={f.phone} onChange={(e) => setF({ ...f, phone: maskPhone(e.target.value) })} /></Field>
+                <Field label="Mensagem (opcional)" htmlFor="ct-m"><Textarea placeholder="Aceita troca? Qual a menor entrada?" id="ct-m" rows={2} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} /></Field>
                 <input tabIndex={-1} autoComplete="off" aria-hidden className="hidden" value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} />
                 <label className="flex items-start gap-2 text-xs text-muted"><input type="checkbox" required className="mt-0.5 size-4" checked={f.consent} onChange={(e) => setF({ ...f, consent: e.target.checked })} /> Autorizo a loja a entrar em contato sobre este veículo.</label>
                 <Button type="submit" className="w-full" loading={contact.isPending}>Enviar</Button>

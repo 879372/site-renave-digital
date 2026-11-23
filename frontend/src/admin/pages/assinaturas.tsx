@@ -126,7 +126,7 @@ export function AssinaturasPage() {
 
       <Modal open={!!trialFor} onOpenChange={(v) => !v && setTrialFor(null)} title="Estender teste" description={trialFor?.organization_name}>
         <Field label="Dias a mais" htmlFor="days" hint="Entre 1 e 90. Quem está no Grátis volta para o teste do Profissional.">
-          <Input id="days" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ""))} />
+          <Input placeholder="7" id="days" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ""))} />
         </Field>
         <Button className="mt-4 w-full" onClick={() => extend.mutate()} loading={extend.isPending}>
           Estender
@@ -283,6 +283,7 @@ function PlanEditor({ plan }: { plan: PlanRow }) {
             <Input
               id={`${plan.code}-${f}`}
               inputMode="decimal"
+              placeholder={(MONEY_FIELDS as readonly string[]).includes(f) ? "0,00" : f === "plate_queries_included" ? "0" : "Ilimitado"}
               value={form[f]}
               onChange={(e) => setForm({ ...form, [f]: (MONEY_FIELDS as readonly string[]).includes(f) ? maskMoney(e.target.value) : e.target.value.replace(/\D/g, "") })}
             />

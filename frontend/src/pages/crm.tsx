@@ -128,10 +128,10 @@ function LeadForm({ open, onOpenChange }: { open: boolean; onOpenChange: (b: boo
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Novo lead">
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
-        <Field label="Nome" htmlFor="ld-n"><Input id="ld-n" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
+        <Field label="Nome" htmlFor="ld-n"><Input placeholder="Maria da Silva" id="ld-n" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Telefone / WhatsApp" htmlFor="ld-p"><Input id="ld-p" value={f.phone} onChange={(e) => setF({ ...f, phone: maskPhone(e.target.value) })} /></Field>
-          <Field label="E-mail" htmlFor="ld-e"><Input id="ld-e" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
+          <Field label="Telefone / WhatsApp" htmlFor="ld-p"><Input placeholder="(84) 99999-9999" id="ld-p" value={f.phone} onChange={(e) => setF({ ...f, phone: maskPhone(e.target.value) })} /></Field>
+          <Field label="E-mail" htmlFor="ld-e"><Input placeholder="maria@email.com" id="ld-e" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
           <Field label="Origem" htmlFor="ld-s"><Select id="ld-s" value={f.source} onChange={(e) => setF({ ...f, source: e.target.value })}>{SOURCES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
           <Field label="Responsável" htmlFor="ld-o"><Select id="ld-o" value={f.owner} onChange={(e) => setF({ ...f, owner: e.target.value })}><option value="">Eu</option>{members.data?.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select></Field>
         </div>

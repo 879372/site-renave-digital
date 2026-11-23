@@ -164,10 +164,10 @@ function NovoLancamento({ open, onOpenChange, kind }: { open: boolean; onOpenCha
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={kind === "receber" ? "Nova conta a receber" : "Nova conta a pagar"}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
-        <Field label="Descrição" htmlFor="l-d"><Input id="l-d" required value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field>
+        <Field label="Descrição" htmlFor="l-d"><Input placeholder="Aluguel de novembro" id="l-d" required value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Valor total"><MoneyInput value={f.amount_cents} onChange={(c) => setF({ ...f, amount_cents: c })} /></Field>
-          <Field label="Parcelas" htmlFor="l-p"><Input id="l-p" inputMode="numeric" value={f.installments} onChange={(e) => setF({ ...f, installments: Number(e.target.value.replace(/\D/g, "") || 1) })} /></Field>
+          <Field label="Parcelas" htmlFor="l-p"><Input placeholder="1" id="l-p" inputMode="numeric" value={f.installments} onChange={(e) => setF({ ...f, installments: Number(e.target.value.replace(/\D/g, "") || 1) })} /></Field>
           <Field label="Vencimento" htmlFor="l-v"><Input id="l-v" type="date" value={f.due_date} onChange={(e) => setF({ ...f, due_date: e.target.value })} /></Field>
           <Field label="Categoria" htmlFor="l-c"><Select id="l-c" value={f.categoria} onChange={(e) => setF({ ...f, categoria: e.target.value })}><option value="">Sem categoria</option>{cats.data?.filter((c) => c.kind === (kind === "receber" ? "receita" : "despesa")).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
         </div>
