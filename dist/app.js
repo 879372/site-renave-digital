@@ -1,16 +1,66 @@
-const ufs = [['AC','Acre'],['AL','Alagoas'],['AP','Amapá'],['AM','Amazonas'],['BA','Bahia'],['CE','Ceará'],['DF','Distrito Federal'],['ES','Espírito Santo'],['GO','Goiás'],['MA','Maranhão'],['MT','Mato Grosso'],['MS','Mato Grosso do Sul'],['MG','Minas Gerais'],['PA','Pará'],['PB','Paraíba'],['PR','Paraná'],['PE','Pernambuco'],['PI','Piauí'],['RJ','Rio de Janeiro'],['RN','Rio Grande do Norte'],['RS','Rio Grande do Sul'],['RO','Rondônia'],['RR','Roraima'],['SC','Santa Catarina'],['SP','São Paulo'],['SE','Sergipe'],['TO','Tocantins']];
-for (const el of [document.querySelector('#state'),document.querySelector('#state-check')]) for (const [uf,name] of ufs) el.add(new Option(`${name} (${uf})`,uf));
-const menu = document.querySelector('#menu'), navigation = document.querySelector('#navigation');
-menu.addEventListener('click',()=>{const open=navigation.classList.toggle('open');menu.setAttribute('aria-expanded',String(open));menu.setAttribute('aria-label',open?'Fechar menu':'Abrir menu');menu.textContent=open?'×':'☰';});
-navigation.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{navigation.classList.remove('open');menu.setAttribute('aria-expanded','false');menu.textContent='☰';menu.setAttribute('aria-label','Abrir menu');}));
-const intent=document.querySelector('#intent'), submit=document.querySelector('#submit-lead');
-function setIntent(){submit.innerHTML=intent.value==='Entrar na fila de espera'?'Solicitar inclusão pelo WhatsApp <span>↗</span>':'Continuar pelo WhatsApp <span>↗</span>';}
-intent.addEventListener('change',setIntent);
-document.querySelectorAll('[data-intent]').forEach(a=>a.addEventListener('click',()=>{intent.value=a.dataset.intent;setIntent();}));
-document.querySelector('#check-state').addEventListener('click',()=>{const selected=document.querySelector('#state-check');if(!selected.value){selected.focus();document.querySelector('#state-result').textContent='Selecione seu estado para continuar.';return;}document.querySelector('#state').value=selected.value;intent.value='Quero conhecer as soluções';setIntent();document.querySelector('#state-result').textContent=`Vamos verificar as condições para ${selected.options[selected.selectedIndex].text}. Complete o formulário abaixo para falar com nossa equipe.`;document.querySelector('#cadastro').scrollIntoView({behavior:'smooth'});});
-const phone=document.querySelector('#phone');phone.addEventListener('input',()=>{phone.setCustomValidity('');const d=phone.value.replace(/\D/g,'').slice(0,11);phone.value=d.length>6?`(${d.slice(0,2)}) ${d.slice(2,d.length===11?7:6)}-${d.slice(d.length===11?7:6)}`:d.length>2?`(${d.slice(0,2)}) ${d.slice(2)}`:d;});
-const form=document.querySelector('#lead-form');form.addEventListener('submit',event=>{event.preventDefault();const d=phone.value.replace(/\D/g,'');if(d.length<10||d.length>11){phone.setCustomValidity('Informe um telefone válido com DDD.');phone.reportValidity();return;}for(const id of ['name','company','city']){const e=document.getElementById(id);e.value=e.value.trim();if(!e.value){e.focus();e.reportValidity();return;}}const fd=new FormData(form);const lines=['Olá, equipe REVENDA DIGITAL!','',`Interesse: ${fd.get('interesse')}`,`Nome: ${fd.get('nome')}`,`WhatsApp: ${fd.get('telefone')}`,`Empresa: ${fd.get('empresa')}`,`Cidade/UF: ${fd.get('cidade')}/${fd.get('estado')}`];if(fd.get('email'))lines.push(`E-mail: ${fd.get('email')}`);if(fd.get('mensagem').trim())lines.push(`Mensagem: ${fd.get('mensagem').trim()}`);if(fd.get('interesse')==='Entrar na fila de espera')lines.push('Gostaria de solicitar minha inclusão na fila de espera e receber informações sobre disponibilidade na minha UF.');lines.push('','Autorizei o uso destes dados para atendimento à minha solicitação.');const url='https://wa.me/5584986276144?text='+encodeURIComponent(lines.join('\n'));const status=document.querySelector('#form-status');status.hidden=false;status.textContent='Sua mensagem está preparada. Envie no WhatsApp para concluir a solicitação. A confirmação será feita pela equipe.';const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.textContent='Abrir ou reabrir minha solicitação no WhatsApp ↗';status.append(a);window.open(url,'_blank','noopener,noreferrer');});
-const privacy=document.querySelector('#privacy');document.querySelectorAll('.privacy-open').forEach(b=>b.addEventListener('click',()=>privacy.showModal()));document.querySelector('#close-privacy').addEventListener('click',()=>privacy.close());privacy.addEventListener('click',e=>{if(e.target===privacy){const r=privacy.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)privacy.close();}});
-document.querySelector('#year').textContent=new Date().getFullYear();
+'use strict';
 
-if('serviceWorker' in navigator&&location.hostname!=='localhost')addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+const menu = document.querySelector('#menu-toggle');
+const nav = document.querySelector('#site-nav');
+function closeMenu() {
+  nav.classList.remove('is-open');
+  menu.setAttribute('aria-expanded', 'false');
+  menu.setAttribute('aria-label', 'Abrir menu');
+}
+menu.addEventListener('click', () => {
+  const open = nav.classList.toggle('is-open');
+  menu.setAttribute('aria-expanded', String(open));
+  menu.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+});
+nav.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && nav.classList.contains('is-open')) { closeMenu(); menu.focus(); }
+});
+document.addEventListener('click', event => { if (!event.target.closest('.header-inner')) closeMenu(); });
+
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function selectTab(tab, focus = false) {
+  tabs.forEach(item => {
+    const selected = item === tab;
+    item.classList.toggle('active', selected);
+    item.setAttribute('aria-selected', String(selected));
+    item.tabIndex = selected ? 0 : -1;
+    document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+  });
+  if (focus) tab.focus();
+}
+tabs.forEach((tab, index) => {
+  tab.addEventListener('click', () => selectTab(tab));
+  tab.addEventListener('keydown', event => {
+    let next;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = tabs.length - 1;
+    if (next !== undefined) { event.preventDefault(); selectTab(tabs[next], true); }
+  });
+});
+
+// O total anual equivale a dez mensalidades, conforme o catálogo de planos.
+const plans = { essencial: { monthly: 9990, annual: 99900 }, profissional: { monthly: 15990, annual: 159900 }, premium: { monthly: 26990, annual: 269900 } };
+const money = cents => (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const billingButtons = [...document.querySelectorAll('[data-billing]')];
+billingButtons.forEach(button => button.addEventListener('click', () => {
+  const annual = button.dataset.billing === 'annual';
+  billingButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+  Object.entries(plans).forEach(([name, plan]) => {
+    const amount = annual ? plan.annual / 12 : plan.monthly;
+    const value = money(amount).split(',');
+    const target = document.querySelector(`[data-price="${name}"]`);
+    target.replaceChildren(document.createTextNode(value[0]));
+    const decimals = document.createElement('span');
+    decimals.textContent = ',' + value[1];
+    target.append(decimals);
+    document.querySelector(`[data-total="${name}"]`).textContent = annual ? `${money(plan.annual)} cobrados por ano.` : 'Cobrança mensal.';
+  });
+  document.querySelector('#annual-explanation').hidden = !annual;
+}));
+document.querySelector('#year').textContent = new Date().getFullYear();
+if ('serviceWorker' in navigator && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+  addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}

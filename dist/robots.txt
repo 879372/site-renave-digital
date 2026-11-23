@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://renavedigital.kaibez.com.br/sitemap.xml
+Sitemap: https://revendadigital.kaibez.com.br/sitemap.xml

@@ -2,7 +2,7 @@
  * Service worker mínimo: só entra em ação quando uma navegação falha por falta de rede,
  * mostrando /offline.html. Não guarda o app em cache, então deploys novos chegam na hora.
  */
-const CACHE = "rd-offline-v1";
+const CACHE = "revenda-site-offline-v2";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
