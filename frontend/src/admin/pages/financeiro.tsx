@@ -125,7 +125,7 @@ function PriceRow({ item }: { item: Price }) {
       </div>
       <div className="flex items-center gap-2">
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" className="size-4 accent-blue" checked={item.is_active} onChange={(e) => save.mutate({ is_active: e.target.checked })} /> Cobrar
+          <input type="checkbox" className="size-4 accent-brand" checked={item.is_active} onChange={(e) => save.mutate({ is_active: e.target.checked })} /> Cobrar
         </label>
         <span className="text-sm text-muted">R$</span>
         <Input className="h-9 w-28 text-right" inputMode="decimal" placeholder="0,00" value={value} onChange={(e) => setValue(maskMoney(e.target.value))} aria-label={`Preço de ${item.label}`} />

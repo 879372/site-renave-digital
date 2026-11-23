@@ -227,14 +227,14 @@ function Privacidade() {
             <span className="block font-semibold">Comunicações comerciais</span>
             <span className="text-sm text-muted">Novidades e ofertas por e-mail ou WhatsApp. Você pode mudar quando quiser.</span>
           </span>
-          <input type="checkbox" className="mt-1 size-5 accent-blue" checked={!!user?.marketing_opt_in} onChange={(e) => toggleMarketing(e.target.checked)} />
+          <input type="checkbox" className="mt-1 size-5 accent-brand" checked={!!user?.marketing_opt_in} onChange={(e) => toggleMarketing(e.target.checked)} />
         </label>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
           <div>
             <p className="font-semibold">Excluir minha conta</p>
             <p className="text-sm text-muted">
               Seus dados pessoais serão anonimizados. Documentos fiscais e registros obrigatórios são mantidos pelo prazo legal.{" "}
-              <a href="/politica-de-privacidade" target="_blank" rel="noopener" className="text-blue">
+              <a href="/politica-de-privacidade" target="_blank" rel="noopener" className="text-brand">
                 Saiba mais
               </a>
             </p>

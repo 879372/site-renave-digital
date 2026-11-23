@@ -133,6 +133,7 @@ function EntradaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
     <Modal open={open} onOpenChange={onOpenChange} title="Registrar entrada no estoque" description="A entrada é registrada no RENAVE com o certificado digital do estabelecimento." wide>
       <form onSubmit={submit} className="space-y-5" noValidate>
         <div className="grid gap-4 sm:grid-cols-2">
+          {!!clients.data?.length && (
           <Field label="Estabelecimento" htmlFor="client_id">
             <Select id="client_id" {...register("client_id")}>
               <option value="">Minha empresa</option>
@@ -143,6 +144,7 @@ function EntradaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
               ))}
             </Select>
           </Field>
+          )}
           <Field label="Tipo de entrada" htmlFor="tipo_operacao">
             <Select id="tipo_operacao" {...register("tipo_operacao")}>
               <option value="compra_veiculo">Compra de terceiro</option>
@@ -152,7 +154,7 @@ function EntradaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
         </div>
 
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Veículo e CRV</legend>
+          <legend className="px-1 text-sm font-semibold">Veículo e CRV</legend>
           <Field label="Placa" htmlFor="placa" error={e.placa?.message}>
             <Input id="placa" placeholder="ABC1D23" {...register("placa", { required: "Obrigatório", onChange: (ev) => setValue("placa", plate(ev.target.value)) })} className="font-mono uppercase" />
           </Field>
@@ -183,7 +185,7 @@ function EntradaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
         </fieldset>
 
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Entrada</legend>
+          <legend className="px-1 text-sm font-semibold">Entrada</legend>
           <Field label={compra ? "Data da compra" : "Data de entrada"} htmlFor="data_compra">
             <Input id="data_compra" type="date" {...register("data_compra", { required: true })} />
           </Field>
@@ -248,7 +250,6 @@ export function EstoquePage() {
   return (
     <>
       <PageHeader
-        eyebrow="03 / Gerenciar"
         title="Estoque RENAVE"
         description="Entradas, saídas e documentos dos veículos no Registro Nacional de Veículos em Estoque."
         action={
@@ -292,7 +293,7 @@ export function EstoquePage() {
               {q.data.results.map((v) => (
                 <tr key={v.id} className="hover:bg-pale/60">
                   <td className="px-5 py-3">
-                    <Link href={`/estoque/${v.id}`} className="font-mono font-semibold text-blue hover:underline">
+                    <Link href={`/estoque/${v.id}`} className="font-mono font-semibold text-brand hover:underline">
                       {plate(v.placa)}
                     </Link>
                   </td>
@@ -543,11 +544,11 @@ export function EstoqueDetailPage() {
       <Link href="/estoque" className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-ink">
         <ArrowLeft className="size-4" /> Voltar ao estoque
       </Link>
-      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-navy p-6 text-white">
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-graphite p-6 text-white">
         <div>
-          <p className="text-xs font-bold tracking-[0.14em] text-yellow uppercase">{v.client_name ?? "Estoque próprio"}</p>
-          <p className="mt-1 font-display text-4xl font-bold tracking-wider">{plate(v.placa)}</p>
-          <p className="text-sm text-[#c7d0ed]">
+          <p className="text-xs font-semibold text-mint">{v.client_name ?? "Estoque próprio"}</p>
+          <p className="mt-1 font-display text-4xl font-semibold tracking-wider">{plate(v.placa)}</p>
+          <p className="text-sm text-[#a1a1aa]">
             {v.marca_modelo || "Veículo"} · RENAVAM {v.renavam} · ID RENAVE {v.id_estoque ?? "aguardando"}
           </p>
         </div>

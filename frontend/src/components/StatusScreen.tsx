@@ -24,8 +24,8 @@ type Props = {
 };
 
 const TONES = {
-  blue: "bg-blue-50 text-blue",
-  yellow: "bg-yellow-50 text-[#8a6500]",
+  blue: "bg-pale text-graphite",
+  yellow: "bg-warn-50 text-[#8a6500]",
   red: "bg-red-50 text-red",
 };
 
@@ -34,16 +34,16 @@ export function StatusScreen({ code, icon: Icon, tone = "blue", title, children,
     <div className="mx-auto flex w-full max-w-lg flex-col items-center text-center">
       <div className="relative mb-6">
         {code && (
-          <p aria-hidden className="font-display text-[112px] leading-none font-extrabold tracking-tighter text-navy/[0.07] select-none sm:text-[150px]">
+          <p aria-hidden className="font-display text-[112px] leading-none font-semibold tracking-tighter text-graphite/[0.07] select-none sm:text-[150px]">
             {code}
           </p>
         )}
-        <div className={clsx("grid size-16 place-items-center rounded-2xl shadow-sm ring-4 ring-white", TONES[tone], code && "absolute inset-0 m-auto")}>
+        <div className={clsx("grid size-16 place-items-center rounded-xl shadow-sm ring-4 ring-white", TONES[tone], code && "absolute inset-0 m-auto")}>
           <Icon className="size-8" />
         </div>
       </div>
-      {code && <p className="mb-2 text-xs font-bold tracking-[0.18em] text-blue uppercase">Erro {code}</p>}
-      <h1 id="status-title" className="text-3xl font-bold sm:text-4xl">{title}</h1>
+      {code && <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-brand uppercase">Erro {code}</p>}
+      <h1 id="status-title" className="text-2xl font-semibold sm:text-4xl">{title}</h1>
       <div className="mt-3 max-w-md text-muted">{children}</div>
       {actions && <div className="mt-8 flex w-full flex-col-reverse justify-center gap-3 sm:w-auto sm:flex-row">{actions}</div>}
       {footer && <div className="mt-8 text-sm text-muted">{footer}</div>}
@@ -55,7 +55,7 @@ export function StatusScreen({ code, icon: Icon, tone = "blue", title, children,
   return (
     <div className="flex min-h-dvh flex-col bg-pale">
       <header className="px-4 py-5 sm:px-8">
-        <a href="/" aria-label="RENAVE DIGITAL início" className="inline-block">
+        <a href="/" aria-label="REVENDA DIGITAL início" className="inline-block">
           <Logo />
         </a>
       </header>
@@ -68,7 +68,7 @@ function Support() {
   return (
     <>
       Precisa de ajuda?{" "}
-      <a href={WHATSAPP} target="_blank" rel="noopener" className="font-semibold text-blue hover:underline">
+      <a href={WHATSAPP} target="_blank" rel="noopener" className="font-semibold text-brand hover:underline">
         Fale com o suporte pelo WhatsApp
       </a>
     </>
@@ -111,7 +111,7 @@ export function ConnectionOverlay() {
   useEffect(() => {
     if (!show) return;
     const previous = document.title;
-    document.title = online ? "Servidor indisponível | RENAVE DIGITAL" : "Sem internet | RENAVE DIGITAL";
+    document.title = online ? "Servidor indisponível | REVENDA DIGITAL" : "Sem internet | REVENDA DIGITAL";
     return () => {
       document.title = previous;
     };
@@ -168,8 +168,8 @@ function PollingHint() {
   return (
     <span className="mt-5 flex items-center justify-center gap-2 text-sm">
       <span className="relative flex size-2.5">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-blue opacity-60" />
-        <span className="relative inline-flex size-2.5 rounded-full bg-blue" />
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
+        <span className="relative inline-flex size-2.5 rounded-full bg-brand" />
       </span>
       Verificando a conexão a cada poucos segundos…
     </span>

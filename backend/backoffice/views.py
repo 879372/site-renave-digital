@@ -335,8 +335,8 @@ class UserAdminViewSet(AdminMixin, mixins.ListModelMixin, mixins.RetrieveModelMi
         token = default_token_generator.make_token(user)
         link = f"{settings.CORS_ALLOWED_ORIGINS[0]}/redefinir-senha?uid={uid}&token={token}"
         mailer.send(
-            "Redefinição de senha — RENAVE DIGITAL",
-            f"Olá, {user.full_name}.\n\nA equipe do RENAVE DIGITAL enviou um link para você criar uma nova senha:\n{link}",
+            "Redefinição de senha — REVENDA DIGITAL",
+            f"Olá, {user.full_name}.\n\nA equipe da REVENDA DIGITAL enviou um link para você criar uma nova senha:\n{link}",
             [user.email],
         )
         record("admin.user_password_reset_sent", request=request, target=user)

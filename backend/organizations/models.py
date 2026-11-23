@@ -49,6 +49,7 @@ class Role(models.TextChoices):
     ADMIN = "admin", "Administrador"
     OPERATOR = "operator", "Operador"
     FINANCE = "finance", "Financeiro"
+    SELLER = "vendedor", "Vendedor"
     VIEWER = "viewer", "Somente leitura"
 
 
@@ -67,9 +68,23 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "fiscal.emit",
         "fiscal.configure",
         "clients.manage",
+        "billing.manage",
+        "estoque.manage",
+        "vendas.operate",
+        "financeiro.manage",
     },
-    Role.OPERATOR: {"consultas.run", "renave.operate", "comunicacao.operate", "fiscal.emit", "clients.manage"},
-    Role.FINANCE: {"wallet.manage", "fiscal.emit", "audit.view"},
+    Role.OPERATOR: {
+        "consultas.run",
+        "renave.operate",
+        "comunicacao.operate",
+        "fiscal.emit",
+        "clients.manage",
+        "estoque.manage",
+        "vendas.operate",
+    },
+    Role.FINANCE: {"wallet.manage", "fiscal.emit", "audit.view", "billing.manage", "financeiro.manage"},
+    # Vendedor: atende, negocia e vende; não mexe em custos, financeiro nem configurações.
+    Role.SELLER: {"vendas.operate", "consultas.run"},
     Role.VIEWER: set(),
 }
 

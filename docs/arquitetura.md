@@ -1,4 +1,4 @@
-# Arquitetura da Plataforma RENAVE DIGITAL
+# Arquitetura da Plataforma REVENDA DIGITAL
 
 Plataforma B2B para revendas, concessionárias e despachantes com três módulos integrados:
 
@@ -64,6 +64,7 @@ renave-digital/
 | `renave` | estoque RENAVE: aptidão, entrada, saída, documentos, sincronização (Carven) |
 | `comunicacao` | comunicação de venda (Carven SCVV) |
 | `fiscal` | dados fiscais do emitente, emissão/cancelamento/CC-e de NF-e (Geranet) |
+| `billing` | planos do Revenda Digital, assinatura, faturas mensais, recursos e limites por plano, gateway Asaas |
 
 ## Multiempresa (tenancy)
 
@@ -107,7 +108,9 @@ consulta:  reserva (−preço)  ──►  captura  (provedor cobrou)
 
 Isso espelha exatamente o modelo da BusCars (`cobrado`, `valorCobradoCentavos`). Operações tarifadas da Carven (entrada, saída, cancelamentos) e NF-e autorizadas em produção usam o mesmo mecanismo.
 
-Recarga via Pix: interface `PaymentProvider` (gateway a definir). Até lá, crédito manual pelo admin com auditoria.
+Recarga via Pix pelo Asaas (`wallet/payments.py`), confirmada pelo webhook `/api/hooks/asaas`. Sem `ASAAS_API_KEY`, crédito manual pelo admin com auditoria.
+
+**Pós-pago (planos pagos do Revenda Digital):** `Wallet.credit_limit_cents` deixa o saldo ficar negativo até o limite do plano. No fechamento mensal (`billing.service.renew`), o saldo negativo vira item da fatura e um lançamento `invoiced` zera a carteira. Assinatura suspensa congela o limite no consumo atual. Detalhes em [revenda-digital/plano-implementacao.md](revenda-digital/plano-implementacao.md).
 
 ## Desempenho e escala
 
@@ -134,7 +137,7 @@ Recarga via Pix: interface `PaymentProvider` (gateway a definir). Até lá, cré
 
 ## Pontos em aberto
 
-1. **Gateway de pagamento** para recarga Pix.
+1. ~~Gateway de pagamento~~: Asaas (falta validar no sandbox com chave real).
 2. **NF-e de veículo**: a documentação da Geranet não mostra o grupo `veicProd` (chassi, cor, RENAVAM…). Confirmar com o suporte como enviar os dados do veículo ou se vão em `informacaoAdicional` do item.
 3. **Carven produção**: `client_id`/`client_secret` são por usuário/informante — definir se a plataforma usa um par único (com clientes cadastrados via `salvar-certificado`) ou um par por empresa.
 4. **Tabela de municípios** Carven (XLSX) a importar como dado de referência.

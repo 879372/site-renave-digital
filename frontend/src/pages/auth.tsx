@@ -19,28 +19,28 @@ import { handleApiError } from "@/lib/forms";
 function AuthLayout({ title, subtitle, children }: { title: string; subtitle?: ReactNode; children: ReactNode }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1fr_1.1fr]">
-      <aside className="relative hidden overflow-hidden bg-navy p-12 text-white lg:flex lg:flex-col">
+      <aside className="relative hidden overflow-hidden bg-graphite p-12 text-white lg:flex lg:flex-col">
         <Logo light />
         <div className="my-auto max-w-md">
-          <p className="mb-4 flex items-center gap-2 text-xs font-bold tracking-[0.16em] text-yellow uppercase">
-            <span className="h-0.5 w-6 bg-yellow" /> Sua revenda conectada
+          <p className="mb-4 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] text-mint uppercase">
+            <span className="h-0.5 w-6 bg-mint" /> Sua revenda conectada
           </p>
-          <h2 className="font-display text-5xl leading-[1.05] font-bold text-white">
+          <h2 className="font-display text-5xl leading-[1.05] font-semibold text-white">
             Sua loja.
             <br />
             Tudo em
             <br />
-            <span className="text-yellow">um só lugar.</span>
+            <span className="text-mint">um só lugar.</span>
           </h2>
-          <ul className="mt-8 space-y-3 text-[#c7d0ed]">
+          <ul className="mt-8 space-y-3 text-[#a1a1aa]">
             {["Consultas veiculares completas", "Estoque RENAVE e comunicação de venda", "Emissão de NF-e de veículos"].map((t) => (
               <li key={t} className="flex items-center gap-3">
-                <CheckCircle2 className="size-5 text-yellow" aria-hidden /> {t}
+                <CheckCircle2 className="size-5 text-mint" aria-hidden /> {t}
               </li>
             ))}
           </ul>
         </div>
-        <p className="flex items-center gap-2 text-xs text-[#c7d0ed]">
+        <p className="flex items-center gap-2 text-xs text-[#a1a1aa]">
           <ShieldCheck className="size-4" aria-hidden /> Conexão protegida, dados cifrados e verificação em duas etapas.
         </p>
       </aside>
@@ -49,7 +49,7 @@ function AuthLayout({ title, subtitle, children }: { title: string; subtitle?: R
           <div className="mb-8 lg:hidden">
             <Logo />
           </div>
-          <h1 className="text-3xl font-bold">{title}</h1>
+          <h1 className="text-2xl font-semibold">{title}</h1>
           {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
           <div className="mt-8">{children}</div>
           <LegalFooter className="mt-10 justify-center" />
@@ -115,7 +115,7 @@ export function LoginPage() {
       subtitle={
         <>
           Ainda não tem conta?{" "}
-          <Link href="/cadastro" className="font-semibold text-blue">
+          <Link href="/cadastro" className="font-semibold text-brand">
             Cadastre sua loja
           </Link>
         </>
@@ -129,7 +129,7 @@ export function LoginPage() {
           <Input id="password" type="password" autoComplete="current-password" placeholder="Sua senha" aria-invalid={!!form.formState.errors.password} {...form.register("password")} />
         </Field>
         <div className="text-right">
-          <Link href="/esqueci-senha" className="text-sm font-semibold text-blue">
+          <Link href="/esqueci-senha" className="text-sm font-semibold text-brand">
             Esqueci minha senha
           </Link>
         </div>
@@ -154,7 +154,6 @@ const registerSchema = z.object({
   cnpj: z.string().min(14, "CNPJ inválido."),
   legal_name: z.string().min(3, "Informe a razão social."),
   trade_name: z.string().optional(),
-  kind: z.enum(["revenda", "concessionaria", "despachante", "contador"]),
   uf: z.string().length(2, "Selecione a UF."),
   city: z.string().min(2, "Informe a cidade."),
   accept_terms: z.literal(true, { errorMap: () => ({ message: "É preciso aceitar os termos." }) }),
@@ -165,7 +164,7 @@ type RegisterValues = z.infer<typeof registerSchema>;
 export function RegisterPage() {
   const { signIn } = useAuth();
   const [step, setStep] = useState(1);
-  const form = useForm<RegisterValues>({ resolver: zodResolver(registerSchema), defaultValues: { kind: "revenda", uf: "" } });
+  const form = useForm<RegisterValues>({ resolver: zodResolver(registerSchema), defaultValues: { uf: "" } });
   const { register, formState, setValue, trigger } = form;
   const e = formState.errors;
 
@@ -183,7 +182,7 @@ export function RegisterPage() {
     try {
       const r = await api("/auth/register", { body: values, auth: false });
       await signIn(r.access);
-      toast.success("Conta criada! Bem-vindo ao RENAVE DIGITAL.");
+      toast.success("Conta criada! Boas-vindas à REVENDA DIGITAL.");
     } catch (err) {
       handleApiError(err, form.setError);
       const fields = Object.keys((err as any)?.fields ?? {});
@@ -197,7 +196,7 @@ export function RegisterPage() {
       subtitle={
         <>
           Já tem conta?{" "}
-          <Link href="/entrar" className="font-semibold text-blue">
+          <Link href="/entrar" className="font-semibold text-brand">
             Entrar
           </Link>
         </>
@@ -205,7 +204,7 @@ export function RegisterPage() {
     >
       <ol className="mb-6 flex gap-2 text-xs font-semibold" aria-label="Etapas">
         {["Seus dados", "Sua empresa"].map((label, i) => (
-          <li key={label} className={`flex-1 border-t-4 pt-2 ${step > i ? "border-blue text-blue" : "border-line text-muted"}`}>
+          <li key={label} className={`flex-1 border-t-4 pt-2 ${step > i ? "border-brand text-brand" : "border-line text-muted"}`}>
             {i + 1}. {label}
           </li>
         ))}
@@ -241,14 +240,14 @@ export function RegisterPage() {
           <div key="step-2" className="space-y-4">
             <CompanyFields form={form} />
             <label className="flex items-start gap-3 text-sm text-muted">
-              <input type="checkbox" className="mt-1 size-4 accent-blue" {...register("accept_terms")} />
+              <input type="checkbox" className="mt-1 size-4 accent-brand" {...register("accept_terms")} />
               <span>
                 Li e aceito os{" "}
-                <a href="/termos-de-uso" target="_blank" rel="noopener" className="font-semibold text-blue underline">
+                <a href="/termos-de-uso" target="_blank" rel="noopener" className="font-semibold text-brand underline">
                   Termos de Uso
                 </a>{" "}
                 e a{" "}
-                <a href="/politica-de-privacidade" target="_blank" rel="noopener" className="font-semibold text-blue underline">
+                <a href="/politica-de-privacidade" target="_blank" rel="noopener" className="font-semibold text-brand underline">
                   Política de Privacidade
                 </a>
                 .
@@ -256,8 +255,8 @@ export function RegisterPage() {
             </label>
             {e.accept_terms && <p className="text-sm text-red">{e.accept_terms.message}</p>}
             <label className="flex items-start gap-3 text-sm text-muted">
-              <input type="checkbox" className="mt-1 size-4 accent-blue" {...register("marketing_opt_in")} />
-              <span>Quero receber novidades e ofertas do RENAVE DIGITAL (opcional).</span>
+              <input type="checkbox" className="mt-1 size-4 accent-brand" {...register("marketing_opt_in")} />
+              <span>Quero receber novidades e ofertas da REVENDA DIGITAL (opcional).</span>
             </label>
             <div className="flex gap-3">
               <Button type="button" variant="secondary" onClick={() => setStep(1)}>
@@ -299,7 +298,7 @@ export function ForgotPage() {
           </Button>
         </form>
       )}
-      <Link href="/entrar" className="mt-6 block text-center text-sm font-semibold text-blue">
+      <Link href="/entrar" className="mt-6 block text-center text-sm font-semibold text-brand">
         Voltar para o login
       </Link>
     </AuthLayout>
@@ -379,7 +378,7 @@ export function InvitePage() {
   };
   return (
     <div className="mx-auto max-w-md py-16 text-center">
-      <h1 className="text-2xl font-bold">Aceitar convite</h1>
+      <h1 className="text-2xl font-semibold">Aceitar convite</h1>
       <p className="mt-2 text-muted">Você terá acesso à empresa que enviou o convite.</p>
       <Button className="mt-6" onClick={accept} loading={loading}>
         Aceitar e continuar
@@ -431,11 +430,11 @@ function CodeInput({ value, onChange, invalid, disabled }: { value: string; onCh
             <div
               key={i}
               className={clsx(
-                "grid h-14 place-items-center rounded-lg border bg-white font-display text-2xl font-bold transition sm:h-16 sm:text-3xl",
-                invalid ? "border-red bg-red-50 text-red" : active ? "border-blue ring-2 ring-blue/25" : value[i] ? "border-navy/40" : "border-line",
+                "grid h-14 place-items-center rounded-lg border bg-white font-display text-2xl font-semibold transition sm:h-16 sm:text-3xl",
+                invalid ? "border-red bg-red-50 text-red" : active ? "border-brand ring-2 ring-brand/25" : value[i] ? "border-graphite/40" : "border-line",
               )}
             >
-              {value[i] ?? (active ? <span className="h-7 w-0.5 animate-pulse bg-blue" /> : "")}
+              {value[i] ?? (active ? <span className="h-7 w-0.5 animate-pulse bg-brand" /> : "")}
             </div>
           );
         })}
@@ -467,7 +466,7 @@ export function VerifyEmailPage() {
       setError("");
       try {
         await api("/auth/email/verify", { body: { code: value } });
-        toast.success("E-mail confirmado. Boas-vindas à RENAVE DIGITAL!");
+        toast.success("E-mail confirmado. Boas-vindas à REVENDA DIGITAL!");
         navigate("/", { replace: true });
         await reload();
       } catch (e) {
@@ -551,7 +550,7 @@ export function VerifyEmailPage() {
 
       <div className="mt-6 flex items-center justify-between gap-3 rounded-lg bg-pale p-4 text-sm">
         <span className="flex items-center gap-2 text-muted">
-          <MailCheck className="size-4 shrink-0 text-blue" aria-hidden />
+          <MailCheck className="size-4 shrink-0 text-brand" aria-hidden />
           {sentAt ? "Código enviado agora há pouco." : "Não recebeu o código?"}
         </span>
         <Button type="button" variant="ghost" size="sm" onClick={() => send(true)} loading={sending} disabled={wait > 0}>
@@ -562,7 +561,7 @@ export function VerifyEmailPage() {
 
       <p className="mt-6 text-center text-sm text-muted">
         E-mail errado?{" "}
-        <button type="button" onClick={() => signOut()} className="font-semibold text-blue hover:underline">
+        <button type="button" onClick={() => signOut()} className="font-semibold text-brand hover:underline">
           Sair e entrar com outra conta
         </button>
       </p>

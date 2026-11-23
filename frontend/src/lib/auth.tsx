@@ -33,9 +33,10 @@ type AuthState = {
 
 const PERMS: Record<string, string[]> = {
   owner: ["*"],
-  admin: ["org.manage", "members.manage", "vault.manage", "wallet.manage", "audit.view", "consultas.run", "renave.operate", "comunicacao.operate", "fiscal.emit", "fiscal.configure", "clients.manage"],
-  operator: ["consultas.run", "renave.operate", "comunicacao.operate", "fiscal.emit", "clients.manage"],
-  finance: ["wallet.manage", "fiscal.emit", "audit.view"],
+  admin: ["org.manage", "members.manage", "vault.manage", "wallet.manage", "audit.view", "consultas.run", "renave.operate", "comunicacao.operate", "fiscal.emit", "fiscal.configure", "clients.manage", "billing.manage", "estoque.manage", "vendas.operate", "financeiro.manage"],
+  operator: ["consultas.run", "renave.operate", "comunicacao.operate", "fiscal.emit", "clients.manage", "estoque.manage", "vendas.operate"],
+  finance: ["wallet.manage", "fiscal.emit", "audit.view", "billing.manage", "financeiro.manage"],
+  vendedor: ["vendas.operate", "consultas.run"],
   viewer: [],
 };
 

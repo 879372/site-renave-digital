@@ -12,6 +12,7 @@ api = [
     path("organizations/", include("organizations.urls")),
     path("vault/", include("vault.urls")),
     path("wallet/", include("wallet.urls")),
+    path("billing/", include("billing.urls")),
     path("audit/", include("audit.urls")),
     path("consultas/", include("consultas.urls")),
     path("renave/", include("renave.urls")),

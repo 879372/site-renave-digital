@@ -67,6 +67,7 @@ export const ROLE_LABEL: Record<string, string> = {
   admin: "Administrador",
   operator: "Operador",
   finance: "Financeiro",
+  vendedor: "Vendedor",
   viewer: "Somente leitura",
 };
 

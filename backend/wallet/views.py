@@ -18,7 +18,14 @@ class WalletView(APIView):
 
     def get(self, request):
         wallet = get_wallet(request.organization)
-        return Response({"balance_cents": wallet.balance_cents, "updated_at": wallet.updated_at})
+        return Response(
+            {
+                "balance_cents": wallet.balance_cents,
+                "credit_limit_cents": wallet.credit_limit_cents,
+                "available_cents": wallet.available_cents,
+                "updated_at": wallet.updated_at,
+            }
+        )
 
 
 class PriceListView(APIView):
@@ -29,7 +36,8 @@ class PriceListView(APIView):
         from .models import ServicePrice
         from .service import price_for
 
-        return Response([{"code": c.value, "label": c.label, "price_cents": price_for(c.value)} for c in ServicePrice.Code])
+        org = request.organization
+        return Response([{"code": c.value, "label": c.label, "price_cents": price_for(c.value, org)} for c in ServicePrice.Code])
 
 
 class LedgerViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

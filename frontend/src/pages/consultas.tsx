@@ -107,7 +107,7 @@ function NewConsulta() {
       <div className="space-y-6">
         {grouped.map(([cat, items]) => (
           <section key={cat}>
-            <h2 className="mb-3 text-sm font-bold tracking-wide text-muted uppercase">{CATEGORY_LABEL[cat] ?? cat}</h2>
+            <h2 className="mb-3 text-sm font-semibold tracking-wide text-muted uppercase">{CATEGORY_LABEL[cat] ?? cat}</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {items.map((p) => (
                 <button
@@ -117,12 +117,12 @@ function NewConsulta() {
                   aria-pressed={sku === p.code}
                   className={clsx(
                     "rounded-xl border bg-white p-4 text-left transition",
-                    sku === p.code ? "border-blue ring-2 ring-blue/20" : "border-line hover:border-blue/50",
+                    sku === p.code ? "border-brand ring-2 ring-brand/20" : "border-line hover:border-brand/50",
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-display text-lg font-semibold">{p.name}</span>
-                    <span className="font-semibold whitespace-nowrap text-blue">{money(p.price_cents)}</span>
+                    <span className="font-semibold whitespace-nowrap text-brand">{money(p.price_cents)}</span>
                   </div>
                   <p className="mt-1 text-sm text-muted">{p.description}</p>
                   {p.highlights.length > 0 && (
@@ -147,13 +147,13 @@ function NewConsulta() {
       </div>
 
       <form
-        className="h-fit rounded-2xl border border-line bg-white p-5 lg:sticky lg:top-24"
+        className="h-fit rounded-xl border border-line bg-white p-5 lg:sticky lg:top-24"
         onSubmit={(e) => {
           e.preventDefault();
           run.mutate();
         }}
       >
-        <h2 className="text-lg font-bold">{selected?.name}</h2>
+        <h2 className="text-lg font-semibold">{selected?.name}</h2>
         <p className="mb-4 text-sm text-muted">{selected?.description}</p>
         <div className="space-y-4">
           <Field label={INPUT_LABEL[inputType]} htmlFor="value">
@@ -162,7 +162,7 @@ function NewConsulta() {
               value={value}
               onChange={(e) => setValue(inputType === "PLACA" ? plate(e.target.value) : e.target.value.toUpperCase())}
               placeholder={{ PLACA: "ABC1D23", CHASSI: "9BWZZZ377VT004251", RENAVAM: "00000000000", MOTOR: "Número do motor", CPF: "000.000.000-00", CNPJ: "00.000.000/0000-00" }[inputType]}
-              className="text-center font-display text-2xl font-bold tracking-widest uppercase"
+              className="text-center font-display text-2xl font-semibold tracking-widest uppercase"
               autoFocus
               required
             />
@@ -231,7 +231,7 @@ function History() {
               <tr key={c.id} className="hover:bg-pale/60">
                 <td className="px-5 py-3 whitespace-nowrap">{dateTime(c.created_at)}</td>
                 <td className="px-5 py-3">
-                  <Link href={`/consultas/${c.id}`} className="font-semibold text-blue hover:underline">
+                  <Link href={`/consultas/${c.id}`} className="font-semibold text-brand hover:underline">
                     {c.product_name}
                   </Link>
                 </td>
@@ -261,7 +261,7 @@ export function ConsultasPage() {
   const [tab, setTab] = useState<"nova" | "historico">("nova");
   return (
     <>
-      <PageHeader eyebrow="01 / Consultar" title="Consultas veiculares" description="Escolha o produto, informe o identificador e receba o laudo na hora." />
+      <PageHeader title="Consultas veiculares" description="Escolha o produto, informe o identificador e receba o laudo na hora." />
       <div className="mb-6 flex gap-1 rounded-xl bg-white p-1 ring-1 ring-line sm:w-fit" role="tablist">
         {(["nova", "historico"] as const).map((t) => (
           <button
@@ -269,7 +269,7 @@ export function ConsultasPage() {
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={clsx("flex-1 rounded-lg px-4 py-2 text-sm font-semibold sm:flex-none", tab === t ? "bg-navy text-white" : "text-muted hover:text-ink")}
+            className={clsx("flex-1 rounded-lg px-4 py-2 text-sm font-semibold sm:flex-none", tab === t ? "bg-graphite text-white" : "text-muted hover:text-ink")}
           >
             {t === "nova" ? "Nova consulta" : "Histórico"}
           </button>
@@ -310,7 +310,7 @@ function ResultTree({ data, depth = 0 }: { data: Record<string, unknown>; depth?
         </dl>
       )}
       {nested.map(([k, v]) => (
-        <section key={k} className={clsx(depth === 0 ? "rounded-xl border border-line p-4" : "pl-3 border-l-2 border-blue/20")}>
+        <section key={k} className={clsx(depth === 0 ? "rounded-xl border border-line p-4" : "pl-3 border-l-2 border-brand/20")}>
           <h3 className="mb-3 font-display text-lg font-semibold">{labelize(k)}</h3>
           {Array.isArray(v) ? (
             v.length === 0 ? (
@@ -376,20 +376,20 @@ export function ConsultaDetailPage() {
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-2xl bg-navy text-white">
+      <section className="overflow-hidden rounded-xl bg-graphite text-white">
         <div className="flex flex-wrap items-center justify-between gap-6 p-6">
           <div>
-            <p className="text-xs font-bold tracking-[0.14em] text-yellow uppercase">Laudo · {c.product_name}</p>
-            <p className="mt-2 font-display text-4xl font-bold tracking-wider">{c.input_type === "PLACA" ? plate(c.input_value) : c.input_value}</p>
-            <p className="mt-1 text-sm text-[#c7d0ed]">
+            <p className="text-xs font-semibold text-mint">Laudo · {c.product_name}</p>
+            <p className="mt-2 font-display text-4xl font-semibold tracking-wider">{c.input_type === "PLACA" ? plate(c.input_value) : c.input_value}</p>
+            <p className="mt-1 text-sm text-[#a1a1aa]">
               {dateTime(c.created_at)} · {c.user_name}
             </p>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3">
-            <Icon className="size-8 text-yellow" aria-hidden />
+            <Icon className="size-8 text-mint" aria-hidden />
             <div>
               <p className="font-semibold">{c.status_display}</p>
-              <p className="text-sm text-[#c7d0ed]">Cobrado: {money(c.charged_cents)}</p>
+              <p className="text-sm text-[#a1a1aa]">Cobrado: {money(c.charged_cents)}</p>
             </div>
           </div>
         </div>

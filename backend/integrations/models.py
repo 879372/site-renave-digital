@@ -8,6 +8,7 @@ class IntegrationCall(models.Model):
         BUSCARS = "buscars", "BusCars"
         CARVEN = "carven", "Carven"
         GERANET = "geranet", "Geranet"
+        ASAAS = "asaas", "Asaas"
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     provider = models.CharField(max_length=10, choices=Provider.choices, db_index=True)

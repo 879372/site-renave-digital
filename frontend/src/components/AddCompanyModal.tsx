@@ -14,7 +14,6 @@ const schema = z.object({
   cnpj: z.string().min(14, "Informe o CNPJ."),
   legal_name: z.string().min(3, "Informe a razão social."),
   trade_name: z.string().optional(),
-  kind: z.enum(["revenda", "concessionaria", "despachante", "contador"]),
   uf: z.string().length(2, "Selecione a UF."),
   city: z.string().min(2, "Informe a cidade."),
 });
@@ -22,7 +21,7 @@ type Values = z.infer<typeof schema>;
 
 export function AddCompanyModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { reload, setOrganization } = useAuth();
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { kind: "revenda", uf: "" } });
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { uf: "" } });
   const submit = form.handleSubmit(async (values) => {
     try {
       const org = await api<{ id: string; name: string }>("/organizations/", { body: values });

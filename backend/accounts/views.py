@@ -15,7 +15,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from audit.service import client_ip, record
 from core import email as mailer
-from organizations.models import Membership, Role
+from organizations.models import Membership, Organization, Role
 from organizations.service import create_organization
 
 from . import lockout, totp, verification
@@ -88,7 +88,7 @@ class RegisterView(AuthView):
                 cnpj=data["cnpj"],
                 legal_name=data["legal_name"],
                 trade_name=data.get("trade_name", ""),
-                kind=data["kind"],
+                kind=Organization.Kind.REVENDA,
                 uf=data["uf"],
                 city=data["city"],
                 email=data["email"],
@@ -241,7 +241,7 @@ class PasswordResetView(AuthView):
             token = default_token_generator.make_token(user)
             link = f"{settings.CORS_ALLOWED_ORIGINS[0]}/redefinir-senha?uid={uid}&token={token}"
             mailer.send(
-                "Redefinição de senha — RENAVE DIGITAL",
+                "Redefinição de senha — REVENDA DIGITAL",
                 f"Olá, {user.full_name}.\n\nPara criar uma nova senha, acesse:\n{link}\n\n"
                 "Se você não pediu a redefinição, ignore este e-mail.",
                 [user.email],
@@ -421,7 +421,7 @@ class DataExportView(APIView):
         }
         record("privacy.data_exported", request=request)
         response = Response(data)
-        response["Content-Disposition"] = 'attachment; filename="meus-dados-renave-digital.json"'
+        response["Content-Disposition"] = 'attachment; filename="meus-dados-revenda-digital.json"'
         return response
 
 

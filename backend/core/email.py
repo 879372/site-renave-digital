@@ -22,5 +22,5 @@ def _deliver(self, subject: str, body: str, to: list[str]):
 
 def send(subject: str, body: str, to: list[str]) -> None:
     """Agenda o envio após o commit da transação (não envia e-mail de operação desfeita)."""
-    footer = "\n\n—\nRENAVE DIGITAL\nEste é um e-mail automático. Para falar com a gente, responda esta mensagem."
+    footer = "\n\n—\nREVENDA DIGITAL\nEste é um e-mail automático. Para falar com a gente, responda esta mensagem."
     transaction.on_commit(lambda: _deliver.delay(subject, body + footer, to))

@@ -1,6 +1,6 @@
 # app-renave-digital
 
-Aplicação web da plataforma RENAVE DIGITAL (https://app.renavedigital.kaibez.com.br): consultas veiculares, estoque RENAVE, comunicação de venda, NF-e de veículos e painel administrativo (`/admin`).
+Aplicação web da plataforma REVENDA DIGITAL (https://app.renavedigital.kaibez.com.br): consultas veiculares, estoque RENAVE, comunicação de venda, NF-e de veículos e painel administrativo (`/admin`).
 
 React 18 + TypeScript + Vite + Tailwind CSS + TanStack Query.
 

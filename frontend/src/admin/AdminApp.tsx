@@ -3,13 +3,16 @@ import {
   Activity,
   Building2,
   Car,
+  CreditCard,
   FileText,
+  Layers,
   KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
   Package,
   Receipt,
+  ReceiptText,
   ScrollText,
   Search,
   Send,
@@ -42,6 +45,9 @@ const Equipe = page(() => import("./pages/usuarios"), "EquipePage");
 const Recargas = page(() => import("./pages/financeiro"), "RecargasPage");
 const Extrato = page(() => import("./pages/financeiro"), "ExtratoPage");
 const Precos = page(() => import("./pages/financeiro"), "PrecosPage");
+const Assinaturas = page(() => import("./pages/assinaturas"), "AssinaturasPage");
+const FaturasAdmin = page(() => import("./pages/assinaturas"), "FaturasAdminPage");
+const PlanosAdmin = page(() => import("./pages/assinaturas"), "PlanosAdminPage");
 const Produtos = page(() => import("./pages/catalogo"), "ProdutosPage");
 const Consultas = page(() => import("./pages/operacoes"), "ConsultasAdminPage");
 const Notas = page(() => import("./pages/operacoes"), "NotasAdminPage");
@@ -63,6 +69,9 @@ const NAV: { group: string; items: { href: string; label: string; icon: Componen
   {
     group: "Financeiro",
     items: [
+      { href: "/assinaturas", label: "Assinaturas", icon: CreditCard },
+      { href: "/faturas", label: "Faturas", icon: ReceiptText },
+      { href: "/planos", label: "Planos", icon: Layers },
       { href: "/recargas", label: "Recargas", icon: Wallet },
       { href: "/extrato", label: "Movimentações", icon: Receipt },
       { href: "/precos", label: "Preços de serviços", icon: Tags },
@@ -92,10 +101,10 @@ const NAV: { group: string; items: { href: string; label: string; icon: Componen
 function AdminLogo() {
   return (
     <span className="flex items-center gap-2.5 leading-none">
-      <img src="/simbolo.svg" alt="" width={34} height={34} />
-      <span className="font-display text-lg font-extrabold tracking-tight text-white">
-        RENAVE <span className="text-yellow">DIGITAL</span>
-        <span className="mt-1 block text-[10px] font-semibold tracking-[0.18em] text-[#c7d0ed]">PAINEL ADMINISTRATIVO</span>
+      <img src="/simbolo.svg" alt="" width={30} height={30} />
+      <span className="text-[15px] font-semibold tracking-tight text-white">
+        REVENDA <span className="text-mint">DIGITAL</span>
+        <span className="mt-1 block text-[11px] font-medium text-[#a1a1aa]">Painel administrativo</span>
       </span>
     </span>
   );
@@ -117,10 +126,10 @@ function LoginPage() {
         <div className="mb-8 flex justify-center">
           <AdminLogo />
         </div>
-        <form onSubmit={submit} className="space-y-5 rounded-2xl bg-white p-7 shadow-2xl">
+        <form onSubmit={submit} className="space-y-5 rounded-xl bg-white p-7 shadow-2xl">
           <div>
-            <h1 className="text-2xl font-bold">Acesso administrativo</h1>
-            <p className="mt-1 text-sm text-muted">Área restrita à equipe RENAVE DIGITAL.</p>
+            <h1 className="text-2xl font-semibold">Acesso administrativo</h1>
+            <p className="mt-1 text-sm text-muted">Área restrita à equipe REVENDA DIGITAL.</p>
           </div>
           <Field label="E-mail" htmlFor="admin-email">
             <Input id="admin-email" type="email" autoComplete="username" placeholder="voce@kaiobez.com.br" autoFocus required {...form.register("email")} />
@@ -154,7 +163,7 @@ function Shell({ children }: { children: ReactNode }) {
       <nav className="space-y-5" aria-label="Administração">
         {NAV.map((g) => (
           <div key={g.group}>
-            <p className="mb-1 px-3 text-[11px] font-bold tracking-[0.14em] text-[#8a97c4] uppercase">{g.group}</p>
+            <p className="mb-1 px-3 text-[11px] font-semibold tracking-[0.14em] text-[#8a97c4] uppercase">{g.group}</p>
             {g.items
               .filter((i) => !i.superuser || user?.is_superuser)
               .map(({ href, label, icon: Icon }) => {
@@ -167,10 +176,10 @@ function Shell({ children }: { children: ReactNode }) {
                     aria-current={active ? "page" : undefined}
                     className={clsx(
                       "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                      active ? "bg-white/10 text-white" : "text-[#c7d0ed] hover:bg-white/5 hover:text-white",
+                      active ? "bg-white/10 text-white" : "text-[#a1a1aa] hover:bg-white/5 hover:text-white",
                     )}
                   >
-                    <Icon className={clsx("size-4", active && "text-yellow")} />
+                    <Icon className={clsx("size-4", active && "text-mint")} />
                     {label}
                   </Link>
                 );
@@ -178,11 +187,11 @@ function Shell({ children }: { children: ReactNode }) {
           </div>
         ))}
       </nav>
-      <div className="mt-auto rounded-xl bg-white/5 p-3 text-xs text-[#c7d0ed]">
+      <div className="mt-auto rounded-xl bg-white/5 p-3 text-xs text-[#a1a1aa]">
         <p className="truncate font-semibold text-white">{user?.full_name}</p>
         <p className="truncate">{user?.email}</p>
-        <p className="mt-1 text-yellow">{user?.is_superuser ? "Administrador geral" : "Equipe"}</p>
-        <button onClick={() => signOut()} className="mt-3 flex items-center gap-2 font-semibold text-white hover:text-yellow">
+        <p className="mt-1 text-mint">{user?.is_superuser ? "Administrador geral" : "Equipe"}</p>
+        <button onClick={() => signOut()} className="mt-3 flex items-center gap-2 font-semibold text-white hover:text-mint">
           <LogOut className="size-4" /> Sair
         </button>
       </div>
@@ -202,7 +211,7 @@ function Shell({ children }: { children: ReactNode }) {
           <button className="rounded-lg p-2" onClick={() => setOpen(true)} aria-label="Abrir menu">
             <Menu className="size-5" />
           </button>
-          <span className="font-display font-bold">Painel administrativo</span>
+          <span className="font-display font-semibold">Painel administrativo</span>
         </header>
         <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:py-8">
           <Suspense fallback={<Spinner />}>{children}</Suspense>
@@ -224,6 +233,9 @@ function Routes() {
         <Route path="/empresas/:id" component={EmpresaDetail} />
         <Route path="/usuarios" component={Usuarios} />
         <Route path="/usuarios/:id" component={UsuarioDetail} />
+        <Route path="/assinaturas" component={Assinaturas} />
+        <Route path="/faturas" component={FaturasAdmin} />
+        <Route path="/planos" component={PlanosAdmin} />
         <Route path="/recargas" component={Recargas} />
         <Route path="/extrato" component={Extrato} />
         <Route path="/precos" component={Precos} />

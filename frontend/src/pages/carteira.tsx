@@ -20,7 +20,12 @@ export function CarteiraPage() {
   const org = organization?.id;
   const qc = useQueryClient();
   const [amount, setAmount] = useState("250,00");
-  const wallet = useQuery({ queryKey: ["wallet", org], queryFn: () => api<{ balance_cents: number }>("/wallet/") });
+  const wallet = useQuery({
+    queryKey: ["wallet", org],
+    queryFn: () => api<{ balance_cents: number; credit_limit_cents: number; available_cents: number }>("/wallet/"),
+  });
+  const hasCredit = (wallet.data?.credit_limit_cents ?? 0) > 0;
+  const postpaid = hasCredit && (wallet.data?.balance_cents ?? 0) < 0;
   const prices = useQuery({ queryKey: ["prices", org], queryFn: () => api<{ code: string; label: string; price_cents: number }[]>("/wallet/prices") });
   const topups = useQuery({ queryKey: ["topups", org], queryFn: () => api<Page<TopUp>>("/wallet/topups") });
   const entries = useInfiniteQuery({
@@ -45,11 +50,19 @@ export function CarteiraPage() {
       <PageHeader title="Carteira" description="Créditos pré-pagos usados em consultas, operações RENAVE, comunicações e notas fiscais." />
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
-          <section className="rounded-2xl bg-navy p-6 text-white">
-            <p className="flex items-center gap-2 text-sm text-[#c7d0ed]">
-              <Wallet className="size-4" /> Saldo disponível
+          <section className="rounded-xl bg-graphite p-6 text-white">
+            <p className="flex items-center gap-2 text-sm text-[#a1a1aa]">
+              <Wallet className="size-4" /> {postpaid ? "Consumo a faturar neste mês" : "Saldo disponível"}
             </p>
-            <p className="mt-2 font-display text-5xl font-bold">{wallet.data ? money(wallet.data.balance_cents) : "…"}</p>
+            <p className="mt-2 text-4xl font-semibold tabular">
+              {wallet.data ? money(postpaid ? Math.max(-wallet.data.balance_cents, 0) : wallet.data.balance_cents) : "…"}
+            </p>
+            {hasCredit && wallet.data && (
+              <p className="mt-2 text-sm text-[#a1a1aa]">
+                Seu plano inclui pagamento por uso: {wallet.data.balance_cents > 0 ? "depois de usar o saldo, " : ""}as operações entram na próxima fatura. Disponível até o
+                limite: {money(wallet.data.available_cents)}.
+              </p>
+            )}
           </section>
           <Card title="Extrato">
             {entries.isLoading ? (
@@ -95,7 +108,7 @@ export function CarteiraPage() {
                       key={p}
                       type="button"
                       onClick={() => setAmount(maskMoney(String(p)))}
-                      className={clsx("rounded-lg border py-2 font-semibold", parseMoney(amount) === p ? "border-blue bg-blue-50 text-blue" : "border-line hover:border-blue/50")}
+                      className={clsx("rounded-lg border py-2 font-semibold", parseMoney(amount) === p ? "border-brand bg-brand-50 text-brand" : "border-line hover:border-brand/50")}
                     >
                       {money(p)}
                     </button>
@@ -108,7 +121,7 @@ export function CarteiraPage() {
                   Gerar recarga
                 </Button>
                 {pending.length > 0 && (
-                  <div className="rounded-xl bg-yellow-50 p-3 text-sm">
+                  <div className="rounded-xl bg-warn-50 p-3 text-sm">
                     <p className="font-semibold">Aguardando pagamento</p>
                     {pending.map((t) => (
                       <p key={t.id} className="text-muted">

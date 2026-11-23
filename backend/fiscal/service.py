@@ -163,10 +163,13 @@ def build_nfe(org, cfg: FiscalSettings, nota: NotaFiscal, d: dict) -> dict:
 
 
 def criar(*, organization, user, data: dict, vehicle=None) -> NotaFiscal:
+    from billing.entitlements import require_feature
+
+    require_feature(organization, "fiscal")
     _check_emitter(organization)
     active_certificate(organization)  # falha cedo se não houver certificado
     ambiente = settings.GERANET["AMBIENTE"]
-    price = wallet.price_for(ServicePrice.Code.NFE) if ambiente == "1" else 0
+    price = wallet.price_for(ServicePrice.Code.NFE, organization) if ambiente == "1" else 0
     with transaction.atomic():
         cfg = FiscalSettings.objects.select_for_update().get(pk=get_settings(organization).pk)
         nota = NotaFiscal(
@@ -243,6 +246,9 @@ def emitir(nota: NotaFiscal) -> NotaFiscal:
 
 
 def reenviar(nota: NotaFiscal, user) -> NotaFiscal:
+    from billing.entitlements import require_feature
+
+    require_feature(nota.organization, "fiscal")
     if nota.status not in (NotaFiscal.Status.REJECTED, NotaFiscal.Status.ERROR):
         raise BusinessError("Somente notas rejeitadas ou com erro podem ser reenviadas.")
     if nota.price_cents and nota.reservation is None:

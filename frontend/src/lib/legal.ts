@@ -5,7 +5,7 @@
  */
 export const LEGAL = {
   version: "2026-11-19",
-  brand: "RENAVE DIGITAL",
+  brand: "REVENDA DIGITAL",
   companyName: "[RAZÃO SOCIAL DA EMPRESA]",
   cnpj: "[CNPJ]",
   address: "[ENDEREÇO COMPLETO]",

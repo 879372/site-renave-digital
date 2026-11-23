@@ -25,7 +25,7 @@ class GeranetClient(BaseClient):
         return {
             "acao": acao,
             "modeloDocumento": "nfe",
-            "nomeSistema": "RENAVE DIGITAL",
+            "nomeSistema": "REVENDA DIGITAL",
             "certificadoDigital": pfx.hex(),
             "senhaCertificadoDigital": senha,
             "ambiente": self.ambiente,

@@ -53,12 +53,12 @@ def send_code(user) -> int:
     cache.set(_key(user), {"digest": _digest(user, code), "attempts": 0, "sent_at": time.time()}, CODE_TTL)
     origin = settings.CORS_ALLOWED_ORIGINS[0]
     mailer.send(
-        f"{code} é o seu código de verificação — RENAVE DIGITAL",
+        f"{code} é o seu código de verificação — REVENDA DIGITAL",
         f"Olá, {user.full_name.split()[0] if user.full_name else ''}.\n\n"
-        f"Seu código para confirmar o e-mail na RENAVE DIGITAL é:\n\n    {code}\n\n"
+        f"Seu código para confirmar o e-mail na REVENDA DIGITAL é:\n\n    {code}\n\n"
         f"Ele vale por {CODE_TTL // 60} minutos. Você também pode confirmar pelo link:\n"
         f"{origin}/verificar-email?codigo={code}\n\n"
-        "Se você não criou uma conta na RENAVE DIGITAL, ignore este e-mail.",
+        "Se você não criou uma conta na REVENDA DIGITAL, ignore este e-mail.",
         [user.email],
     )
     return 0

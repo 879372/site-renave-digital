@@ -64,7 +64,7 @@ def _raise_for(resp: ProviderResponse, client: CarvenClient):
 
 def _run(*, organization, user, kind, call, vehicle=None, description=""):
     """Executa uma operação: reserva (se tarifada) → chama → captura/estorna → registra."""
-    price = wallet.price_for(PRICED[kind]) if kind in PRICED else 0
+    price = wallet.price_for(PRICED[kind], organization) if kind in PRICED else 0
     with transaction.atomic():
         op = RenaveOperation.objects.create(organization=organization, vehicle=vehicle, user=user, kind=kind, price_cents=price)
         if price:

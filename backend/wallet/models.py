@@ -6,10 +6,22 @@ from core.models import TimeStampedModel
 class Wallet(models.Model):
     organization = models.OneToOneField("organizations.Organization", on_delete=models.PROTECT, related_name="wallet")
     balance_cents = models.BigIntegerField(default=0)
+    # Pós-pago (planos pagos do Revenda Digital): o saldo pode ficar negativo até este limite
+    # e o consumo vai para a fatura do mês. Zero = pré-pago.
+    credit_limit_cents = models.BigIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [models.CheckConstraint(condition=models.Q(balance_cents__gte=0), name="wallet_non_negative")]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(credit_limit_cents__gte=0), name="wallet_credit_limit_non_negative"),
+            models.CheckConstraint(
+                condition=models.Q(balance_cents__gte=models.F("credit_limit_cents") * -1), name="wallet_within_credit_limit"
+            ),
+        ]
+
+    @property
+    def available_cents(self) -> int:
+        return self.balance_cents + self.credit_limit_cents
 
     def __str__(self):
         return f"Carteira {self.organization}"
@@ -24,6 +36,7 @@ class LedgerEntry(TimeStampedModel):
         RESERVE = "reserve", "Reserva"
         RELEASE = "release", "Estorno"
         CAPTURE_ADJUST = "capture_adjust", "Ajuste de cobrança"
+        INVOICED = "invoiced", "Enviado para a fatura"
 
     wallet = models.ForeignKey(Wallet, on_delete=models.PROTECT, related_name="entries")
     kind = models.CharField(max_length=20, choices=Kind.choices)
@@ -102,8 +115,8 @@ class ServicePrice(models.Model):
 
 
 DEFAULT_PRICES = {
-    ServicePrice.Code.RENAVE_ENTRADA: 2490,
-    ServicePrice.Code.RENAVE_SAIDA: 2490,
+    ServicePrice.Code.RENAVE_ENTRADA: 3000,
+    ServicePrice.Code.RENAVE_SAIDA: 3000,
     ServicePrice.Code.RENAVE_CANCELAR_ENTRADA: 990,
     ServicePrice.Code.RENAVE_CANCELAR_SAIDA: 990,
     ServicePrice.Code.COMUNICACAO: 1990,

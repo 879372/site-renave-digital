@@ -22,11 +22,20 @@ from .service import create_organization
 from .tenancy import OrganizationPermission, resolve_membership
 
 
+def check_seats(org, *, include_pending: bool) -> None:
+    """Respeita o limite de usuários do plano (membros ativos + convites pendentes)."""
+    from billing.entitlements import check_limit
+
+    used = Membership.objects.filter(organization=org, is_active=True).count()
+    if include_pending:
+        used += Invitation.objects.filter(organization=org, accepted_at__isnull=True, expires_at__gt=timezone.now()).count()
+    check_limit(org, "users", used, "usuários")
+
+
 class CreateOrganizationSerializer(serializers.Serializer):
     cnpj = serializers.CharField(max_length=18)
     legal_name = serializers.CharField(max_length=150)
     trade_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    kind = serializers.ChoiceField(choices=Organization.Kind.choices, default=Organization.Kind.REVENDA)
     uf = serializers.CharField(max_length=2)
     city = serializers.CharField(max_length=80)
 
@@ -47,7 +56,13 @@ class OrganizationCreateView(APIView):
         s.is_valid(raise_exception=True)
         if Membership.objects.filter(user=request.user, role=Role.OWNER).count() >= 20:
             raise PermissionDenied("Limite de empresas por conta atingido. Fale com o suporte.")
-        data = {**s.validated_data, "uf": s.validated_data["uf"].upper(), "email": request.user.email, "phone": request.user.phone}
+        data = {
+            **s.validated_data,
+            "kind": Organization.Kind.REVENDA,
+            "uf": s.validated_data["uf"].upper(),
+            "email": request.user.email,
+            "phone": request.user.phone,
+        }
         with transaction.atomic():
             org = create_organization(request.user, **data)
         record("organization.created", request=request, actor=request.user, organization=org, target=org)
@@ -88,6 +103,8 @@ class MemberViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.Destr
             raise PermissionDenied("A titularidade só pode ser transferida pelo suporte.")
         if target.user_id == self.request.user.id:
             raise PermissionDenied("Você não pode alterar o próprio papel.")
+        if not target.is_active and serializer.validated_data.get("is_active"):
+            check_seats(self.request.organization, include_pending=True)
         serializer.save()
         record("member.updated", request=self.request, target=target, role=new_role, active=serializer.instance.is_active)
 
@@ -114,6 +131,7 @@ class InvitationViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.D
         org = self.request.organization
         if Membership.objects.filter(organization=org, user__email=email).exists():
             raise ValidationError({"email": "Este usuário já faz parte da empresa."})
+        check_seats(org, include_pending=True)
         token = secrets.token_urlsafe(32)
         invitation = serializer.save(
             organization=org,
@@ -124,8 +142,8 @@ class InvitationViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.D
         )
         link = f"{settings.CORS_ALLOWED_ORIGINS[0]}/convite?token={token}"
         mailer.send(
-            f"Convite para {org} — RENAVE DIGITAL",
-            f"{self.request.user.full_name} convidou você para acessar {org} no RENAVE DIGITAL.\n\nAceite o convite em até 7 dias:\n{link}",
+            f"Convite para {org} — REVENDA DIGITAL",
+            f"{self.request.user.full_name} convidou você para acessar {org} na REVENDA DIGITAL.\n\nAceite o convite em até 7 dias:\n{link}",
             [email],
         )
         record("member.invited", request=self.request, target=invitation, role=invitation.role)
@@ -147,6 +165,8 @@ class AcceptInvitationView(APIView):
             raise NotFound("Convite inválido ou expirado.")
         if invitation.email != request.user.email:
             raise PermissionDenied("Este convite foi enviado para outro e-mail.")
+        if not Membership.objects.filter(user=request.user, organization=invitation.organization).exists():
+            check_seats(invitation.organization, include_pending=False)
         with transaction.atomic():
             try:
                 Membership.objects.create(

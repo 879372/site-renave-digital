@@ -37,7 +37,7 @@ const userColumns = [
     header: "Usuário",
     cell: (u: UserRow) => (
       <Link href={`/usuarios/${u.id}`} className="block">
-        <span className="block font-semibold text-blue hover:underline">{u.full_name}</span>
+        <span className="block font-semibold text-brand hover:underline">{u.full_name}</span>
         <span className="text-xs text-muted">{u.email}</span>
       </Link>
     ),
@@ -93,7 +93,7 @@ export function UsuarioDetailPage() {
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{u.full_name}</h1>
+          <h1 className="text-2xl font-semibold">{u.full_name}</h1>
           <p className="text-muted">
             {u.email} · cadastro em {date(u.date_joined)} · último acesso {dateTime(u.last_login)}
           </p>
@@ -202,7 +202,7 @@ function NewStaffModal({ onClose }: { onClose: () => void }) {
           <Input id="st-pass" type="password" autoComplete="new-password" placeholder="Senha forte" required minLength={10} {...form.register("password")} />
         </Field>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" className="size-4 accent-blue" {...form.register("is_superuser")} /> Administrador geral (pode gerenciar a equipe)
+          <input type="checkbox" className="size-4 accent-brand" {...form.register("is_superuser")} /> Administrador geral (pode gerenciar a equipe)
         </label>
         <Button type="submit" className="w-full" loading={form.formState.isSubmitting}>
           Criar acesso
@@ -260,7 +260,7 @@ export function EquipePage() {
           {
             header: "",
             cell: (u) => (
-              <Link href={`/usuarios/${u.id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-blue">
+              <Link href={`/usuarios/${u.id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-brand">
                 <KeyRound className="size-4" /> Gerenciar
               </Link>
             ),

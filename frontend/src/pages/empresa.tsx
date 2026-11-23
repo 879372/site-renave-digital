@@ -17,7 +17,6 @@ import { AddCompanyModal } from "@/components/AddCompanyModal";
 const TABS = [
   ["dados", "Dados da empresa"],
   ["equipe", "Equipe"],
-  ["clientes", "Clientes atendidos"],
   ["certificados", "Certificados digitais"],
   ["fiscal", "Configuração fiscal"],
 ] as const;
@@ -122,7 +121,7 @@ function Dados() {
           </Select>
         </Field>
         <label className="flex items-center gap-2 text-sm sm:col-span-3">
-          <input type="checkbox" className="size-4 accent-blue" disabled={disabled} {...form.register("mfa_required")} />
+          <input type="checkbox" className="size-4 accent-brand" disabled={disabled} {...form.register("mfa_required")} />
           Exigir verificação em duas etapas de todos os membros
         </label>
         {!disabled && (
@@ -190,7 +189,7 @@ function Equipe() {
                 <td className="px-5 py-3">
                   {manage && m.role !== "owner" && m.email !== user?.email ? (
                     <Select value={m.role} onChange={(e) => update.mutate({ id: m.id, body: { role: e.target.value } })} className="h-9 w-44">
-                      {["admin", "operator", "finance", "viewer"].map((r) => (
+                      {["admin", "operator", "finance", "vendedor", "viewer"].map((r) => (
                         <option key={r} value={r}>
                           {ROLE_LABEL[r]}
                         </option>
@@ -236,7 +235,8 @@ function Equipe() {
             <Select id="inv-role" {...form.register("role")}>
               <option value="admin">Administrador — tudo, exceto titularidade</option>
               <option value="operator">Operador — consultas, RENAVE, notas</option>
-              <option value="finance">Financeiro — carteira e notas</option>
+              <option value="finance">Financeiro — carteira, plano e notas</option>
+              <option value="vendedor">Vendedor — atendimento e vendas</option>
               <option value="viewer">Somente leitura</option>
             </Select>
           </Field>
@@ -395,6 +395,7 @@ function Certificados() {
               upload.mutate();
             }}
           >
+            {!!clients.data?.length && (
             <Field label="Titular" htmlFor="cert-client">
               <Select id="cert-client" value={client} onChange={(e) => setClient(e.target.value)}>
                 <option value="">Minha empresa</option>
@@ -405,6 +406,7 @@ function Certificados() {
                 ))}
               </Select>
             </Field>
+            )}
             <Field label="Arquivo do certificado" htmlFor="cert-file">
               <Input id="cert-file" type="file" accept=".pfx,.p12" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="pt-2" />
             </Field>
@@ -467,7 +469,7 @@ function Fiscal() {
           <Textarea id="ic" rows={3} disabled={disabled} placeholder="Texto que sai em todas as notas (ex.: regime especial, observações do contador)" {...form.register("informacao_complementar")} />
         </Field>
         <label className="flex items-center gap-2 text-sm sm:col-span-3">
-          <input type="checkbox" className="size-4 accent-blue" disabled={disabled} {...form.register("enviar_chave_renave")} />
+          <input type="checkbox" className="size-4 accent-brand" disabled={disabled} {...form.register("enviar_chave_renave")} />
           Enviar automaticamente a chave da NF-e ao RENAVE quando a nota estiver ligada a um veículo do estoque
         </label>
         {!disabled && (
@@ -505,7 +507,7 @@ export function EmpresaPage() {
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={clsx("rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap", tab === key ? "bg-navy text-white" : "text-muted hover:text-ink")}
+            className={clsx("rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap", tab === key ? "bg-graphite text-white" : "text-muted hover:text-ink")}
           >
             {label}
           </button>

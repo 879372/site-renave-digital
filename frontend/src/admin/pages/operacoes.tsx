@@ -67,7 +67,7 @@ function ConsultaModal({ id, onClose }: { id: string; onClose: () => void }) {
             <pre className="max-h-96 overflow-auto rounded-lg bg-ink p-4 text-xs text-white">{JSON.stringify(data.result, null, 2)}</pre>
           ) : (
             ["success", "not_found"].includes(data.status) && (
-              <div className="rounded-lg border border-yellow/40 bg-yellow-50 p-3">
+              <div className="rounded-lg border border-warn/40 bg-warn-50 p-3">
                 <p className="mb-2">O resultado contém dados pessoais. A visualização fica registrada na auditoria.</p>
                 <Button size="sm" variant="secondary" onClick={() => setWithResult(true)}>
                   <Eye className="size-4" /> Ver resultado

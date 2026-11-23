@@ -1,6 +1,6 @@
 # api-renave-digital
 
-API da plataforma RENAVE DIGITAL: consultas veiculares, estoque RENAVE, comunicação de venda, emissão de NF-e, carteira pré-paga e painel administrativo.
+API da plataforma REVENDA DIGITAL: consultas veiculares, estoque RENAVE, comunicação de venda, emissão de NF-e, carteira pré-paga e painel administrativo.
 
 Django 5.2 + Django REST Framework + PostgreSQL + Redis + Celery, gerenciado com [uv](https://docs.astral.sh/uv/).
 

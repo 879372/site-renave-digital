@@ -14,4 +14,7 @@ def create_organization(user, **data) -> Organization:
         data.setdefault("city", info["city"])
     org = Organization.objects.create(**data)
     Membership.objects.create(user=user, organization=org, role=Role.OWNER)
+    from billing.service import on_organization_created
+
+    on_organization_created(org)
     return org

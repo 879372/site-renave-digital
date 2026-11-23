@@ -15,7 +15,7 @@ export function OrgCell({ org }: { org: OrgRef }) {
   if (!org) return <span className="text-muted">—</span>;
   return (
     <Link href={`/empresas/${org.id}`} className="group block min-w-0">
-      <span className="block truncate font-semibold text-blue group-hover:underline">{org.name}</span>
+      <span className="block truncate font-semibold text-brand group-hover:underline">{org.name}</span>
       <span className="block font-mono text-xs text-muted">{document(org.cnpj)}</span>
     </Link>
   );

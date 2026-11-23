@@ -1,4 +1,4 @@
-# RENAVE DIGITAL
+# REVENDA DIGITAL
 
 Plataforma de consultas veiculares, estoque RENAVE, comunicação de venda e emissão de NF-e, mais o site institucional.
 

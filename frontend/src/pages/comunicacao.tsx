@@ -74,7 +74,7 @@ function NovaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: bo
     <Modal open={open} onOpenChange={onOpenChange} title="Nova comunicação de venda" description="A comunicação fica salva como rascunho e só é enviada ao órgão de trânsito quando você transmitir." wide>
       <form onSubmit={submit} className="space-y-5" noValidate>
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Veículo</legend>
+          <legend className="px-1 text-sm font-semibold">Veículo</legend>
           <Field label="Placa" htmlFor="placa" error={e.placa?.message}>
             <Input id="placa" placeholder="ABC1D23" className="font-mono uppercase" {...register("placa", { required: "Obrigatório", onChange: (ev) => setValue("placa", plate(ev.target.value)) })} />
           </Field>
@@ -100,7 +100,7 @@ function NovaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: bo
         </fieldset>
 
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Vendedor</legend>
+          <legend className="px-1 text-sm font-semibold">Vendedor</legend>
           <Field label="Tipo" htmlFor="vendedor_tipo">
             <Select id="vendedor_tipo" {...register("vendedor_tipo")}>
               <option value="F">Pessoa física</option>
@@ -114,7 +114,7 @@ function NovaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: bo
         </fieldset>
 
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Comprador</legend>
+          <legend className="px-1 text-sm font-semibold">Comprador</legend>
           <Field label="Tipo" htmlFor="comprador_tipo">
             <Select id="comprador_tipo" {...register("comprador_tipo")}>
               <option value="F">Pessoa física</option>
@@ -156,14 +156,14 @@ function NovaModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: bo
         </fieldset>
 
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Venda</legend>
+          <legend className="px-1 text-sm font-semibold">Venda</legend>
           {F({ name: "data_venda", label: "Data da venda", type: "date" })}
           <Field label="Valor (R$)" htmlFor="valor" error={e.valor_cents?.message}>
             <Input id="valor" inputMode="decimal" placeholder="0,00" {...register("valor", { required: "Obrigatório", onChange: (ev) => setValue("valor", maskMoney(ev.target.value)) })} />
           </Field>
           {F({ name: "cidade_venda", label: "Cidade da venda (IBGE)", inputMode: "numeric", maxLength: 7 })}
           <label className="flex items-center gap-2 text-sm sm:col-span-3">
-            <input type="checkbox" className="size-4 accent-blue" {...register("comprador_solicitante")} /> O comprador é quem está solicitando a comunicação
+            <input type="checkbox" className="size-4 accent-brand" {...register("comprador_solicitante")} /> O comprador é quem está solicitando a comunicação
           </label>
         </fieldset>
 

@@ -26,9 +26,9 @@ function LegalLayout({ title, children }: { title: string; children: ReactNode }
         <Link href={status === "authenticated" ? "/" : "/entrar"} className="no-print mb-6 inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-ink">
           <ArrowLeft className="size-4" /> Voltar
         </Link>
-        <h1 className="text-4xl font-bold">{title}</h1>
+        <h1 className="text-4xl font-semibold">{title}</h1>
         <p className="mt-2 text-sm text-muted">Versão vigente: {LEGAL.version.split("-").reverse().join("/")}</p>
-        <article className="legal mt-8 space-y-4 text-[15px] leading-7 text-ink [&_h2]:mt-10 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_p]:text-muted [&_li]:text-muted">
+        <article className="legal mt-8 space-y-4 text-[15px] leading-7 text-ink [&_h2]:mt-10 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:mt-6 [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_p]:text-muted [&_li]:text-muted">
           {children}
         </article>
         <LegalFooter className="mt-16" />
@@ -42,7 +42,7 @@ export function TermsPage() {
     <LegalLayout title="Termos de Uso">
       <p>
         Estes Termos regulam o uso da plataforma {LEGAL.brand} ("Plataforma"), mantida por {LEGAL.companyName}, inscrita no CNPJ {LEGAL.cnpj}, com sede em {LEGAL.address} ("nós"). Ao criar uma conta ou usar a Plataforma, você declara que leu e concorda com estes Termos e com a{" "}
-        <Link href="/politica-de-privacidade" className="font-semibold text-blue">
+        <Link href="/politica-de-privacidade" className="font-semibold text-brand">
           Política de Privacidade
         </Link>
         .
@@ -61,7 +61,7 @@ export function TermsPage() {
 
       <h2>2. Cadastro e conta</h2>
       <ul>
-        <li>A Plataforma é destinada a pessoas jurídicas (lojas, revendas, concessionárias, despachantes e contadores) e a seus representantes maiores de 18 anos.</li>
+        <li>A Plataforma é destinada a pessoas jurídicas que revendem veículos (lojas e revendas multimarcas) e a seus representantes maiores de 18 anos.</li>
         <li>Você deve informar dados verdadeiros e mantê-los atualizados. O titular da conta responde pelos atos praticados pelos usuários que convidar.</li>
         <li>As credenciais são pessoais e intransferíveis. Recomendamos ativar a verificação em duas etapas. Avise-nos imediatamente sobre qualquer uso não autorizado.</li>
       </ul>
@@ -132,7 +132,7 @@ export function PrivacyPage() {
       <h2>1. Quem é o controlador e o Encarregado</h2>
       <p>
         Controlador: {LEGAL.companyName}, {LEGAL.address}. Encarregado pelo tratamento de dados (DPO): {LEGAL.dpoName}, e-mail{" "}
-        <a href={`mailto:${LEGAL.dpoEmail}`} className="font-semibold text-blue">
+        <a href={`mailto:${LEGAL.dpoEmail}`} className="font-semibold text-brand">
           {LEGAL.dpoEmail}
         </a>
         .
@@ -207,7 +207,7 @@ export function PrivacyPage() {
       </ul>
       <p>
         Na Plataforma, em <strong>Meu perfil → Privacidade e dados</strong>, você baixa seus dados e exclui sua conta. Para os demais pedidos, escreva para{" "}
-        <a href={`mailto:${LEGAL.dpoEmail}`} className="font-semibold text-blue">
+        <a href={`mailto:${LEGAL.dpoEmail}`} className="font-semibold text-brand">
           {LEGAL.dpoEmail}
         </a>
         . Respondemos em até 15 dias.

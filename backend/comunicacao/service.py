@@ -94,7 +94,7 @@ def criar(*, organization, user, data: dict, vehicle=None) -> ComunicacaoVenda:
 def transmitir(cv: ComunicacaoVenda, user) -> ComunicacaoVenda:
     if cv.situacao not in (ComunicacaoVenda.Situacao.CADASTRADA, ComunicacaoVenda.Situacao.ERRO):
         raise BusinessError("Esta comunicação não pode ser transmitida na situação atual.")
-    price = wallet.price_for(ServicePrice.Code.COMUNICACAO)
+    price = wallet.price_for(ServicePrice.Code.COMUNICACAO, cv.organization)
     with transaction.atomic():
         if price and cv.reservation is None:
             cv.price_cents = price

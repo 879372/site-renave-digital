@@ -1,6 +1,8 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 
+from billing import admin_views as billing_admin
+
 from . import auth, views
 
 router = SimpleRouter(trailing_slash=False)
@@ -21,6 +23,9 @@ router.register("certificates", views.CertificateAdminViewSet, basename="admin-c
 router.register("integration-calls", views.IntegrationCallAdminViewSet, basename="admin-calls")
 router.register("webhooks", views.WebhookAdminViewSet, basename="admin-webhooks")
 router.register("audit", views.AuditAdminViewSet, basename="admin-audit")
+router.register("plans", billing_admin.PlanAdminViewSet, basename="admin-plans")
+router.register("subscriptions", billing_admin.SubscriptionAdminViewSet, basename="admin-subscriptions")
+router.register("invoices", billing_admin.InvoiceAdminViewSet, basename="admin-invoices")
 
 urlpatterns = [
     path("auth/login", auth.AdminLoginView.as_view()),

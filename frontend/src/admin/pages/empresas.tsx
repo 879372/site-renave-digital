@@ -49,7 +49,7 @@ export function EmpresasPage() {
             header: "Empresa",
             cell: (o) => (
               <Link href={`/empresas/${o.id}`} className="block">
-                <span className="block font-semibold text-blue hover:underline">{o.trade_name || o.legal_name}</span>
+                <span className="block font-semibold text-brand hover:underline">{o.trade_name || o.legal_name}</span>
                 <span className="font-mono text-xs text-muted">{document(o.cnpj)}</span>
               </Link>
             ),
@@ -106,7 +106,7 @@ function AdjustModal({ org, onClose }: { org: OrgDetail; onClose: () => void }) 
               role="radio"
               aria-checked={type === t}
               onClick={() => setType(t)}
-              className={clsx("rounded-lg border py-2 font-semibold", type === t ? "border-blue bg-blue-50 text-blue" : "border-line")}
+              className={clsx("rounded-lg border py-2 font-semibold", type === t ? "border-brand bg-brand-50 text-brand" : "border-line")}
             >
               {t === "credit" ? "Creditar" : "Debitar"}
             </button>
@@ -190,7 +190,7 @@ function DadosTab({ org }: { org: OrgDetail }) {
           </Select>
         </Field>
         <label className="flex items-center gap-2 text-sm sm:col-span-3">
-          <input type="checkbox" className="size-4 accent-blue" {...form.register("mfa_required")} /> Exigir verificação em duas etapas dos membros
+          <input type="checkbox" className="size-4 accent-brand" {...form.register("mfa_required")} /> Exigir verificação em duas etapas dos membros
         </label>
         <div className="sm:col-span-3">
           <Button type="submit" loading={form.formState.isSubmitting}>
@@ -228,7 +228,7 @@ function MembrosTab({ org }: { org: OrgDetail }) {
             {org.members.map((m) => (
               <tr key={m.id}>
                 <td className="px-5 py-3">
-                  <Link href={`/usuarios/${m.user_id}`} className="font-semibold text-blue hover:underline">
+                  <Link href={`/usuarios/${m.user_id}`} className="font-semibold text-brand hover:underline">
                     {m.full_name}
                   </Link>
                   <span className="block text-xs text-muted">{m.email}</span>
@@ -315,7 +315,7 @@ export function EmpresaDetailPage() {
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{org.trade_name || org.legal_name}</h1>
+          <h1 className="text-2xl font-semibold">{org.trade_name || org.legal_name}</h1>
           <p className="text-muted">
             {org.legal_name} · <span className="font-mono">{document(org.cnpj)}</span> · cadastrada em {date(org.created_at)}
           </p>
@@ -347,7 +347,7 @@ export function EmpresaDetailPage() {
             role="tab"
             aria-selected={tab === k}
             onClick={() => setTab(k)}
-            className={clsx("rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap", tab === k ? "bg-navy text-white" : "text-muted hover:text-ink")}
+            className={clsx("rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap", tab === k ? "bg-graphite text-white" : "text-muted hover:text-ink")}
           >
             {label}
           </button>

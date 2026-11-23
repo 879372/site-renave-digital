@@ -1,8 +1,8 @@
 """Provedores de pagamento para recarga.
 
-`ManualProvider` é o padrão até o gateway Pix ser contratado: a recarga fica
-pendente e o time financeiro confirma pelo admin (com auditoria). Para plugar um
-gateway, implemente `create_charge` e um webhook que chame `service.confirm_topup`.
+Com `ASAAS_API_KEY` configurada, a recarga gera uma cobrança Pix no Asaas e o
+webhook (`/api/hooks/asaas`) confirma o crédito. Sem a chave, `ManualProvider`
+deixa a recarga pendente e o financeiro confirma pelo admin (com auditoria).
 """
 
 from dataclasses import dataclass
@@ -28,5 +28,35 @@ class ManualProvider:
         return charge
 
 
+class AsaasProvider:
+    name = "asaas"
+
+    def create_charge(self, topup) -> Charge:
+        from datetime import datetime
+
+        from billing.gateway import ensure_customer
+        from integrations.asaas import AsaasClient
+
+        client = AsaasClient(topup.organization)
+        payment = client.create_payment(
+            customer=ensure_customer(topup.organization),
+            value_cents=topup.amount_cents,
+            due_date=(timezone.localdate() + timedelta(days=1)).isoformat(),
+            description="Recarga de créditos — REVENDA DIGITAL",
+            external_reference=f"topup:{topup.public_id}",
+            billing_type="PIX",
+        )
+        qr = client.pix_qr_code(payment["id"])
+        charge = Charge(reference=payment["id"], pix_copy_paste=qr.get("payload", ""), pix_qr_base64=qr.get("encodedImage", ""))
+        expires = qr.get("expirationDate")
+        try:
+            charge.expires_at = timezone.make_aware(datetime.fromisoformat(expires)) if expires else None
+        except ValueError:
+            charge.expires_at = None
+        return charge
+
+
 def get_provider():
-    return ManualProvider()
+    from billing.gateway import enabled
+
+    return AsaasProvider() if enabled() else ManualProvider()

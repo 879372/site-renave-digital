@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "audit",
     "vault",
     "wallet",
+    "billing",
     "integrations",
     "consultas",
     "renave",
@@ -209,7 +210,7 @@ REFRESH_COOKIE_PATH = "/api/auth/"
 REFRESH_COOKIE_SECURE = True
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "RENAVE DIGITAL API",
+    "TITLE": "REVENDA DIGITAL API",
     "DESCRIPTION": "Consultas veiculares, estoque RENAVE, comunicação de venda e NF-e.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
@@ -242,7 +243,7 @@ EMAIL_HOST_USER = "resend"
 EMAIL_HOST_PASSWORD = env("RESEND_API_KEY")
 EMAIL_TIMEOUT = 15
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend" if EMAIL_HOST_PASSWORD else "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "RENAVE DIGITAL <nao-responda@kaiobez.com.br>")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "REVENDA DIGITAL <nao-responda@kaiobez.com.br>")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 SUPPORT_EMAIL = env("SUPPORT_EMAIL", "contato@kaiobez.com.br")
 PRIVACY_EMAIL = env("PRIVACY_EMAIL", "privacidade@kaiobez.com.br")
@@ -253,7 +254,7 @@ VAULT_MASTER_KEYS_OLD = env_list("VAULT_MASTER_KEYS_OLD")
 
 LOGIN_MAX_FAILURES = int(env("LOGIN_MAX_FAILURES", "5"))
 LOGIN_LOCKOUT_SECONDS = int(env("LOGIN_LOCKOUT_SECONDS", "900"))
-TOTP_ISSUER = "RENAVE DIGITAL"
+TOTP_ISSUER = "REVENDA DIGITAL"
 # Versão vigente dos Termos de Uso e da Política de Privacidade (data de publicação).
 LEGAL_VERSION = env("LEGAL_VERSION", "2026-11-19")
 
@@ -271,6 +272,11 @@ CELERY_BEAT_SCHEDULE = {
     "consultas-varrer-pendentes": {
         "task": "consultas.tasks.sweep_pending",
         "schedule": 300.0,
+    },
+    # Fim de testes, fechamento mensal e inadimplência. Idempotente: pode rodar mais de uma vez.
+    "billing-rotina-diaria": {
+        "task": "billing.tasks.run_daily",
+        "schedule": 3600.0,
     },
 }
 
@@ -293,6 +299,13 @@ GERANET = {
     "API_KEY": env("GERANET_API_KEY"),
     "AMBIENTE": env("GERANET_AMBIENTE", "2"),  # 1 produção, 2 homologação
     "TIMEOUT": float(env("GERANET_TIMEOUT", "120")),
+}
+
+ASAAS = {
+    "BASE_URL": env("ASAAS_BASE_URL", "https://api-sandbox.asaas.com/v3"),
+    "API_KEY": env("ASAAS_API_KEY"),
+    "WEBHOOK_TOKEN": env("ASAAS_WEBHOOK_TOKEN"),
+    "TIMEOUT": float(env("ASAAS_TIMEOUT", "30")),
 }
 
 PUBLIC_API_URL = env("PUBLIC_API_URL", "http://localhost:8000")

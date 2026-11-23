@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { Link, useLocation, useParams, useSearch } from "wouter";
 
 import { Badge, Button, Card, Empty, Field, Input, Modal, PageHeader, Select, Spinner, Table, Textarea } from "@/components/ui";
+import { LockedPanel } from "@/components/PlanGate";
 import { api, cursorOf, download, type Page } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useBilling } from "@/lib/billing";
 import { dateTime, document, maskDocument, maskMoney, money, parseMoney, plate, UFS } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
 import { lookupAddress, maskCep } from "@/lib/lookup";
@@ -127,7 +129,7 @@ function NovaNotaModal({ open, onOpenChange, preset }: { open: boolean; onOpenCh
         </Field>
         </div>
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Destinatário</legend>
+          <legend className="px-1 text-sm font-semibold">Destinatário</legend>
           <Field label="CPF/CNPJ" htmlFor="documento" error={e.documento?.message}>
             <Input id="documento" placeholder="CPF ou CNPJ" {...register("documento", { ...req, onChange: (ev) => setValue("documento", maskDocument(ev.target.value)) })} />
           </Field>
@@ -154,7 +156,7 @@ function NovaNotaModal({ open, onOpenChange, preset }: { open: boolean; onOpenCh
           </Field>
         </fieldset>
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Veículo</legend>
+          <legend className="px-1 text-sm font-semibold">Veículo</legend>
           {f("placa", "Placa", { className: "font-mono uppercase" })}
           {f("chassi", "Chassi", { className: "font-mono uppercase", maxLength: 17 })}
           {f("renavam", "RENAVAM", { inputMode: "numeric", maxLength: 11 })}
@@ -166,7 +168,7 @@ function NovaNotaModal({ open, onOpenChange, preset }: { open: boolean; onOpenCh
           {f("ncm", "NCM (opcional)", { inputMode: "numeric", maxLength: 8 }, {})}
         </fieldset>
         <fieldset className="grid gap-4 rounded-xl border border-line p-4 sm:grid-cols-3">
-          <legend className="px-1 text-sm font-bold">Valores</legend>
+          <legend className="px-1 text-sm font-semibold">Valores</legend>
           <Field label="Valor (R$)" htmlFor="valor" error={e.valor_cents?.message}>
             <Input id="valor" inputMode="decimal" placeholder="0,00" {...register("valor", { ...req, onChange: (ev) => setValue("valor", maskMoney(ev.target.value)) })} />
           </Field>
@@ -198,6 +200,7 @@ function NovaNotaModal({ open, onOpenChange, preset }: { open: boolean; onOpenCh
 export function NotasPage() {
   const params = new URLSearchParams(useSearch());
   const { organization, can } = useAuth();
+  const fiscalOk = useBilling().has("fiscal");
   const [open, setOpen] = useState(params.get("nova") === "1");
   const [status, setStatus] = useState("");
   const q = useInfiniteQuery({
@@ -211,17 +214,22 @@ export function NotasPage() {
   return (
     <>
       <PageHeader
-        eyebrow="02 / Faturar"
         title="Notas fiscais"
         description="NF-e de entrada e saída de veículos, com envio automático da chave ao RENAVE."
         action={
-          can("fiscal.emit") && (
+          can("fiscal.emit") &&
+          fiscalOk && (
             <Button onClick={() => setOpen(true)}>
               <Plus className="size-4" /> Emitir NF-e
             </Button>
           )
         }
       />
+      {!fiscalOk && (
+        <div className="mb-6">
+          <LockedPanel feature="fiscal" title="Emissão de nota fiscal" />
+        </div>
+      )}
       <Card
         title="Notas emitidas"
         action={
@@ -242,7 +250,7 @@ export function NotasPage() {
             {rows.map((n) => (
               <tr key={n.id} className="hover:bg-pale/60">
                 <td className="px-5 py-3">
-                  <Link href={`/notas/${n.id}`} className="font-semibold text-blue hover:underline">
+                  <Link href={`/notas/${n.id}`} className="font-semibold text-brand hover:underline">
                     {n.serie}/{n.numero}
                   </Link>
                   {n.ambiente === "2" && <span className="ml-2 text-xs text-muted">homologação</span>}
@@ -295,15 +303,15 @@ export function NotaDetailPage() {
       <Link href="/notas" className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-ink">
         <ArrowLeft className="size-4" /> Voltar
       </Link>
-      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-navy p-6 text-white">
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-graphite p-6 text-white">
         <div>
-          <p className="text-xs font-bold tracking-[0.14em] text-yellow uppercase">
+          <p className="text-xs font-semibold text-mint">
             NF-e · {n.tipo_display} {n.ambiente === "2" && "· homologação"}
           </p>
-          <p className="mt-1 font-display text-4xl font-bold">
+          <p className="mt-1 font-display text-4xl font-semibold">
             {n.serie}/{n.numero}
           </p>
-          <p className="text-sm text-[#c7d0ed]">
+          <p className="text-sm text-[#a1a1aa]">
             {n.destinatario_nome} · {document(n.destinatario_documento)} · {money(n.total_cents)}
           </p>
         </div>

@@ -129,13 +129,13 @@ function ProductModal({ product, onClose }: { product: Product | null; onClose: 
         </Field>
         <div className="flex flex-wrap items-end gap-4 text-sm">
           <label className="flex items-center gap-2">
-            <input type="checkbox" className="size-4 accent-blue" {...form.register("is_active")} /> Ativo
+            <input type="checkbox" className="size-4 accent-brand" {...form.register("is_active")} /> Ativo
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" className="size-4 accent-blue" {...form.register("is_featured")} /> Destaque
+            <input type="checkbox" className="size-4 accent-brand" {...form.register("is_featured")} /> Destaque
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" className="size-4 accent-blue" {...form.register("is_async")} /> Retorno posterior
+            <input type="checkbox" className="size-4 accent-brand" {...form.register("is_async")} /> Retorno posterior
           </label>
         </div>
         <div className="sm:col-span-2">

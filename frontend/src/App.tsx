@@ -30,6 +30,7 @@ const Comunicacao = page(() => import("./pages/comunicacao"), "ComunicacaoPage")
 const Notas = page(() => import("./pages/notas"), "NotasPage");
 const NotaDetail = page(() => import("./pages/notas"), "NotaDetailPage");
 const Carteira = page(() => import("./pages/carteira"), "CarteiraPage");
+const Planos = page(() => import("./pages/planos"), "PlanosPage");
 const Empresa = page(() => import("./pages/empresa"), "EmpresaPage");
 const Perfil = page(() => import("./pages/perfil"), "PerfilPage");
 const Auditoria = page(() => import("./pages/auditoria"), "AuditoriaPage");
@@ -38,7 +39,7 @@ const Admin = page(() => import("./admin/AdminApp"), "AdminApp");
 const Privacy = page(() => import("./pages/legal"), "PrivacyPage");
 
 /** Rotas que existem para quem está logado: sem sessão, mandam para o login em vez do 404. */
-const PRIVATE_ROUTES = /^\/(consultas|estoque|comunicacao-venda|notas|carteira|empresa|perfil|auditoria)(\/|$)/;
+const PRIVATE_ROUTES = /^\/(consultas|estoque|comunicacao-venda|notas|carteira|planos|empresa|perfil|auditoria)(\/|$)/;
 
 function LegalGate() {
   const { user, legalVersion, reload } = useAuth();
@@ -57,12 +58,12 @@ function LegalGate() {
     <Modal open onOpenChange={() => {}} title="Atualizamos nossos termos" description="Para continuar usando a plataforma, leia e aceite a nova versão dos documentos.">
       <ul className="mb-5 space-y-2 text-sm">
         <li>
-          <a href="/termos-de-uso" target="_blank" rel="noopener" className="font-semibold text-blue">
+          <a href="/termos-de-uso" target="_blank" rel="noopener" className="font-semibold text-brand">
             Termos de Uso
           </a>
         </li>
         <li>
-          <a href="/politica-de-privacidade" target="_blank" rel="noopener" className="font-semibold text-blue">
+          <a href="/politica-de-privacidade" target="_blank" rel="noopener" className="font-semibold text-brand">
             Política de Privacidade
           </a>
         </li>
@@ -154,6 +155,7 @@ export function App() {
           <Route path="/notas" component={Notas} />
           <Route path="/notas/:id" component={NotaDetail} />
           <Route path="/carteira" component={Carteira} />
+          <Route path="/planos" component={Planos} />
           <Route path="/empresa" component={Empresa} />
           <Route path="/perfil" component={Perfil} />
           <Route path="/auditoria" component={Auditoria} />
@@ -203,9 +205,9 @@ function NoCompanyScreen() {
             </Button>
           </>
         }
-        footer={<>Se você trabalha em uma empresa que já usa a RENAVE DIGITAL, peça ao responsável um convite para {user?.email}.</>}
+        footer={<>Se você trabalha em uma empresa que já usa a REVENDA DIGITAL, peça ao responsável um convite para {user?.email}.</>}
       >
-        Sua conta ainda não está ligada a nenhuma empresa. Cadastre o CNPJ da sua revenda, concessionária ou escritório para consultar, operar o RENAVE e
+        Sua conta ainda não está ligada a nenhuma empresa. Cadastre o CNPJ da sua loja para começar a gerenciar estoque, vendas, RENAVE e
         emitir notas.
       </StatusScreen>
       <AddCompanyModal open={adding} onOpenChange={setAdding} />

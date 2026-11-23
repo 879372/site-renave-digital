@@ -91,7 +91,7 @@ export function AdminDashboard() {
                 key={d}
                 onClick={() => setDays(d)}
                 aria-pressed={days === d}
-                className={clsx("rounded-lg px-3 py-1.5 text-sm font-semibold", days === d ? "bg-navy text-white" : "text-muted hover:text-ink")}
+                className={clsx("rounded-lg px-3 py-1.5 text-sm font-semibold", days === d ? "bg-graphite text-white" : "text-muted hover:text-ink")}
               >
                 {d} dias
               </button>
@@ -103,7 +103,7 @@ export function AdminDashboard() {
       {alerts.length > 0 && (
         <div className="space-y-2">
           {alerts.map((a) => (
-            <Link key={a.text} href={a.href} className="flex items-center gap-3 rounded-xl border border-yellow/40 bg-yellow-50 px-4 py-3 text-sm hover:border-yellow">
+            <Link key={a.text} href={a.href} className="flex items-center gap-3 rounded-xl border border-warn/40 bg-warn-50 px-4 py-3 text-sm hover:border-warn">
               <a.icon className="size-4 text-[#8a6500]" aria-hidden /> {a.text}
             </Link>
           ))}
@@ -136,7 +136,7 @@ export function AdminDashboard() {
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card title="Consultas por dia" action={<button className="text-sm font-semibold text-blue" onClick={() => setShowTable((v) => !v)}>{showTable ? "Ver gráfico" : "Ver tabela"}</button>}>
+        <Card title="Consultas por dia" action={<button className="text-sm font-semibold text-brand" onClick={() => setShowTable((v) => !v)}>{showTable ? "Ver gráfico" : "Ver tabela"}</button>}>
           {showTable ? (
             <div className="h-64 overflow-y-auto text-sm">
               <table className="w-full">

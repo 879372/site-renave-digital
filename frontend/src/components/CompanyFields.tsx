@@ -6,7 +6,7 @@ import { Field, Input, Select } from "@/components/ui";
 import { maskDocument, UFS } from "@/lib/format";
 import { lookupCompany } from "@/lib/lookup";
 
-type CompanyForm = { cnpj: string; legal_name: string; trade_name?: string; kind: string; uf: string; city: string };
+type CompanyForm = { cnpj: string; legal_name: string; trade_name?: string; uf: string; city: string };
 
 /** Campos de empresa com preenchimento automático (razão social, fantasia, UF e cidade) a partir do CNPJ. */
 export function CompanyFields<T extends FieldValues & CompanyForm>({ form }: { form: UseFormReturn<T> }) {
@@ -71,14 +71,6 @@ export function CompanyFields<T extends FieldValues & CompanyForm>({ form }: { f
       </Field>
       <Field label="Nome fantasia (opcional)" htmlFor="trade_name">
         <Input id="trade_name" placeholder="Como sua loja é conhecida" {...register("trade_name" as Path<T>)} />
-      </Field>
-      <Field label="Tipo de negócio" htmlFor="kind">
-        <Select id="kind" {...register("kind" as Path<T>)}>
-          <option value="revenda">Loja / revenda</option>
-          <option value="concessionaria">Concessionária</option>
-          <option value="despachante">Despachante</option>
-          <option value="contador">Contador</option>
-        </Select>
       </Field>
       <div className="grid grid-cols-[110px_1fr] gap-4">
         <Field label="UF" htmlFor="uf" error={e.uf?.message}>

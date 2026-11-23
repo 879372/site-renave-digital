@@ -44,7 +44,6 @@ class RegisterSerializer(serializers.Serializer):
     cnpj = serializers.CharField(max_length=18)
     legal_name = serializers.CharField(max_length=150)
     trade_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    kind = serializers.ChoiceField(choices=Organization.Kind.choices, default=Organization.Kind.REVENDA)
     uf = serializers.CharField(max_length=2)
     city = serializers.CharField(max_length=80)
     accept_terms = serializers.BooleanField()

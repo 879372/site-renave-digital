@@ -1,4 +1,4 @@
-# API RENAVE DIGITAL — imagem de produção (web e worker usam a mesma imagem)
+# API REVENDA DIGITAL — imagem de produção (web e worker usam a mesma imagem)
 FROM python:3.13-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

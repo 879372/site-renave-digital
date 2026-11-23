@@ -20,7 +20,7 @@ def _locked(organization) -> Wallet:
 
 def _post(wallet: Wallet, kind, amount, description, *, ref_type="", ref_id="", key=None, user=None) -> LedgerEntry:
     wallet.balance_cents += amount
-    if wallet.balance_cents < 0:
+    if amount < 0 and wallet.balance_cents < -wallet.credit_limit_cents:
         raise InsufficientBalance()
     wallet.save(update_fields=["balance_cents", "updated_at"])
     return LedgerEntry.objects.create(
@@ -53,8 +53,10 @@ def reserve(organization, amount_cents: int, description: str, *, ref_type: str,
     """Debita o valor antes de chamar o provedor. Lança InsufficientBalance."""
     with transaction.atomic():
         wallet = _locked(organization)
-        if wallet.balance_cents < amount_cents:
-            raise InsufficientBalance(extra={"balance_cents": wallet.balance_cents, "required_cents": amount_cents})
+        if wallet.available_cents < amount_cents:
+            raise InsufficientBalance(
+                extra={"balance_cents": wallet.balance_cents, "available_cents": wallet.available_cents, "required_cents": amount_cents}
+            )
         reservation = Reservation.objects.create(
             wallet=wallet, amount_cents=amount_cents, reference_type=ref_type, reference_id=str(ref_id), description=description[:200]
         )
@@ -139,15 +141,20 @@ def confirm_topup(topup: TopUp, *, user=None) -> TopUp:
         return topup
 
 
-def price_for(code: str) -> int:
+def price_for(code: str, organization=None) -> int:
     from .models import DEFAULT_PRICES, ServicePrice
 
+    if organization is not None:
+        from billing.entitlements import included_in_plan
+
+        if included_in_plan(organization, code):
+            return 0
     item = ServicePrice.objects.filter(code=code, is_active=True).first()
     return item.price_cents if item else DEFAULT_PRICES.get(code, 0)
 
 
 def adjust(organization, amount_cents: int, description: str, *, user=None) -> LedgerEntry:
-    """Ajuste manual do admin (positivo credita, negativo debita). Nunca deixa saldo negativo."""
+    """Ajuste manual do admin (positivo credita, negativo debita). Respeita o limite de crédito."""
     if amount_cents == 0:
         raise ValueError("Valor do ajuste não pode ser zero.")
     with transaction.atomic():
@@ -162,3 +169,26 @@ def cancel_topup(topup: TopUp) -> TopUp:
             topup.status = TopUp.Status.CANCELED
             topup.save(update_fields=["status", "updated_at"])
         return topup
+
+
+def set_credit_limit(organization, limit_cents: int) -> Wallet:
+    """Define o limite pós-pago. Se já houver consumo acima do novo limite, congela no consumo atual."""
+    with transaction.atomic():
+        wallet = _locked(organization)
+        wallet.credit_limit_cents = max(limit_cents, -wallet.balance_cents, 0)
+        wallet.save(update_fields=["credit_limit_cents", "updated_at"])
+        return wallet
+
+
+def invoice_usage(organization, *, invoice_ref: str) -> int:
+    """Leva o consumo pós-pago (saldo negativo) para a fatura e zera o saldo. Retorna o valor faturado."""
+    with transaction.atomic():
+        wallet = _locked(organization)
+        owed = -wallet.balance_cents
+        if owed <= 0:
+            return 0
+        key = f"inv:{invoice_ref}"
+        if LedgerEntry.objects.filter(idempotency_key=key).exists():
+            return 0
+        _post(wallet, LedgerEntry.Kind.INVOICED, owed, "Consumo enviado para a fatura", ref_type="invoice", ref_id=invoice_ref, key=key)
+        return owed

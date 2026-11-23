@@ -27,7 +27,7 @@ export function DashboardPage() {
       <PageHeader title={`Olá, ${first}`} description={`Resumo de ${organization?.name ?? "sua empresa"}.`} />
 
       {certs.data && !ownCert && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-yellow/40 bg-yellow-50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warn/40 bg-warn-50 p-4">
           <p className="flex items-center gap-2 text-sm">
             <ShieldAlert className="size-5 text-[#8a6500]" aria-hidden />
             Envie o certificado digital A1 da empresa para operar o RENAVE e emitir notas fiscais.
@@ -41,16 +41,16 @@ export function DashboardPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Saldo disponível" value={wallet.data ? money(wallet.data.balance_cents) : "…"} icon={<Wallet className="size-5" />} hint={<Link href="/carteira" className="font-semibold text-blue">Recarregar</Link>} />
+        <Stat label="Saldo disponível" value={wallet.data ? money(wallet.data.balance_cents) : "…"} icon={<Wallet className="size-5" />} hint={<Link href="/carteira" className="font-semibold text-brand">Recarregar</Link>} />
         <Stat label="Consultas (30 dias)" value={summary.data?.last_30_days.total ?? "…"} icon={<Search className="size-5" />} hint={summary.data ? `${money(summary.data.last_30_days.spent)} investidos` : undefined} />
-        <Stat label="Veículos em estoque" value={stock.data?.count ?? "…"} icon={<Car className="size-5" />} hint={<Link href="/estoque" className="font-semibold text-blue">Ver estoque</Link>} />
-        <Stat label="Notas fiscais" value={<FileText className="size-8 text-blue" />} hint={<Link href="/notas" className="font-semibold text-blue">Emitir NF-e</Link>} />
+        <Stat label="Veículos em estoque" value={stock.data?.count ?? "…"} icon={<Car className="size-5" />} hint={<Link href="/estoque" className="font-semibold text-brand">Ver estoque</Link>} />
+        <Stat label="Notas fiscais" value={<FileText className="size-8 text-brand" />} hint={<Link href="/notas" className="font-semibold text-brand">Emitir NF-e</Link>} />
       </div>
 
       <Card
         title="Consultas recentes"
         action={
-          <Link href="/consultas" className="inline-flex items-center gap-1 text-sm font-semibold text-blue">
+          <Link href="/consultas" className="inline-flex items-center gap-1 text-sm font-semibold text-brand">
             Ver todas <ArrowRight className="size-4" />
           </Link>
         }
@@ -59,7 +59,7 @@ export function DashboardPage() {
           <Spinner />
         ) : !recent.data?.results.length ? (
           <Empty title="Nenhuma consulta ainda" icon={<Search />}>
-            <Link href="/consultas" className="font-semibold text-blue">
+            <Link href="/consultas" className="font-semibold text-brand">
               Fazer a primeira consulta
             </Link>
           </Empty>
