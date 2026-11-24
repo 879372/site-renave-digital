@@ -1,5 +1,6 @@
 """Loja demonstrativa isolada; sem gateways, mensagens ou documentos fiscais reais."""
 
+import secrets
 from datetime import timedelta
 from io import BytesIO
 
@@ -48,6 +49,10 @@ class Command(BaseCommand):
             if existing.legal_name != DEMO_NAME:
                 raise CommandError("Identificador ocupado por outra empresa; nada foi alterado.")
             Membership.objects.get_or_create(user=owner, organization=existing, defaults={"role": Role.OWNER})
+            site = Site.objects.filter(organization=existing).first()
+            if site and not site.feed_token:
+                site.feed_token = secrets.token_urlsafe(24)
+                site.save(update_fields=["feed_token"])
             self.stdout.write(f"Demonstração já existente: {existing.public_id}. Nenhum dado duplicado.")
             return
         premium = Plan.objects.get(code="premium")
@@ -360,6 +365,7 @@ class Command(BaseCommand):
         Site.objects.create(
             organization=org,
             slug="revenda-demonstracao",
+            feed_token=secrets.token_urlsafe(24),
             title=DEMO_NAME,
             is_published=True,
             about="Loja fictícia para demonstrar a plataforma. Veículos e valores ilustrativos, sem oferta comercial.",

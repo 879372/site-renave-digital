@@ -50,3 +50,20 @@ def test_demo_requires_existing_owner():
     with pytest.raises(CommandError):
         call_command("seed_demo", owner_email="absent@example.invalid", no_images=True)
     assert not Organization.objects.filter(cnpj=DEMO_CNPJ).exists()
+
+
+@pytest.mark.django_db
+def test_demo_storefront_uses_configured_public_path(user, settings):
+    from rest_framework.test import APIClient
+
+    settings.STOREFRONT_BASE_URL = "https://app.revendadigital.kaibez.com.br/loja"
+    call_command("seed_demo", owner_email=user.email, no_images=True, stdout=StringIO())
+    org = Organization.objects.get(cnpj=DEMO_CNPJ)
+    client = APIClient()
+    client.force_authenticate(user)
+    client.credentials(HTTP_X_ORGANIZATION=str(org.public_id))
+    response = client.get("/api/site/")
+    assert response.status_code == 200
+    assert response.data["url"] == "https://app.revendadigital.kaibez.com.br/loja/revenda-demonstracao"
+    assert response.data["feed_url"]
+    assert client.put("/api/site/", {"title": org.trade_name}, format="json").status_code == 200

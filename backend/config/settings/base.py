@@ -352,6 +352,7 @@ ZAPSIGN = {
 }
 # Site das lojas: <slug>.STOREFRONT_DOMAIN
 STOREFRONT_DOMAIN = env("STOREFRONT_DOMAIN", "revendadigital.kaibez.com.br")
+STOREFRONT_BASE_URL = env("STOREFRONT_BASE_URL", "").rstrip("/")
 
 ASAAS = {
     "BASE_URL": env("ASAAS_BASE_URL", "https://api-sandbox.asaas.com/v3"),

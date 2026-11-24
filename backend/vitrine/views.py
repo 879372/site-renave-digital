@@ -66,6 +66,8 @@ class SiteSerializer(serializers.ModelSerializer):
         return value
 
     def get_url(self, obj):
+        if settings.STOREFRONT_BASE_URL:
+            return f"{settings.STOREFRONT_BASE_URL}/{obj.slug}"
         return f"https://{obj.slug}.{settings.STOREFRONT_DOMAIN}"
 
     def get_feed_url(self, obj):
