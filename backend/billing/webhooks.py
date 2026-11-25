@@ -9,11 +9,12 @@ from django.utils import timezone
 from audit.service import record
 from integrations.http import ProviderError
 from integrations.infinitepay import InfinitePayClient
+from wallet.models import TopUp
 from wallet.service import confirm_topup
 
 from . import service
 from .gateway import PROVIDER, _notify
-from .models import Checkout
+from .models import Checkout, Invoice
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,12 @@ def confirm_checkout(reference, transaction_nsu, slug):
         return False
     try:
         with transaction.atomic():
+            # Mesma ordem do gerador do link: alvo antes do checkout, evitando
+            # deadlock entre abrir a fatura e confirmar o pagamento simultaneamente.
+            if checkout.invoice_id:
+                Invoice.objects.select_for_update().get(pk=checkout.invoice_id)
+            else:
+                TopUp.objects.select_for_update().get(pk=checkout.topup_id)
             checkout = Checkout.objects.select_for_update().get(pk=checkout.pk)
             if checkout.paid_at:
                 return True
