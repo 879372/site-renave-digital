@@ -40,11 +40,8 @@ export function SitePage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
             <Card title="Configuração">
               <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-                <Field label="Endereço do site" htmlFor="s-slug" error={errors.slug} hint="Letras minúsculas, números e hífen.">
-                  <div className="flex items-center gap-2">
-                    <Input placeholder="minhaloja" id="s-slug" disabled={!manage} value={f.slug ?? ""} onChange={(e) => set("slug", e.target.value.toLowerCase())} className="max-w-56" />
-                    <span className="text-sm text-muted">.revendadigital.kaibez.com.br</span>
-                  </div>
+                <Field label="Identificador do site" htmlFor="s-slug" error={errors.slug} hint="Parte final do endereço, após /loja/. Use de 3 a 40 letras minúsculas, números ou hífen. Salve para atualizar o endereço do site.">
+                  <Input placeholder="minhaloja" id="s-slug" disabled={!manage} minLength={3} maxLength={40} value={f.slug ?? ""} onChange={(e) => set("slug", e.target.value.toLowerCase())} />
                 </Field>
                 <Field label="Nome no site" htmlFor="s-t"><Input placeholder="Minha Loja Veículos" id="s-t" disabled={!manage} required value={f.title ?? ""} onChange={(e) => set("title", e.target.value)} /></Field>
                 <Field label="Sobre a loja" htmlFor="s-a"><Textarea placeholder="Há 10 anos vendendo seminovos revisados e com garantia." id="s-a" disabled={!manage} rows={3} value={f.about ?? ""} onChange={(e) => set("about", e.target.value)} /></Field>
@@ -61,10 +58,10 @@ export function SitePage() {
               </form>
             </Card>
             <div className="space-y-6">
-              <Card title="Endereço">
+              <Card title="Endereço completo">
                 {q.data ? (
                   <div className="space-y-2 text-sm">
-                    <p className="flex items-center gap-2 break-all"><Globe className="size-4 shrink-0 text-muted" /> {q.data.url}</p>
+                    <p className="flex items-start gap-2"><Globe className="mt-0.5 size-4 shrink-0 text-muted" /> <a href={q.data.url} target="_blank" rel="noopener noreferrer" className="min-w-0 break-words text-brand underline-offset-2 hover:underline [overflow-wrap:anywhere]">{q.data.url}</a></p>
                     <p className="text-muted">{q.data.is_published ? "No ar." : "Fora do ar: marque “Site no ar” para publicar."}</p>
                   </div>
                 ) : <p className="text-sm text-muted">Salve a configuração para criar o site.</p>}
