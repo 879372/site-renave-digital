@@ -50,6 +50,7 @@ const Comunicacao = page(() => import("./pages/comunicacao"), "ComunicacaoPage")
 const Notas = page(() => import("./pages/notas"), "NotasPage");
 const NotaDetail = page(() => import("./pages/notas"), "NotaDetailPage");
 const Carteira = page(() => import("./pages/carteira"), "CarteiraPage");
+const PaymentReturn = page(() => import("./pages/pagamento-retorno"), "PaymentReturnPage");
 const Planos = page(() => import("./pages/planos"), "PlanosPage");
 const Empresa = page(() => import("./pages/empresa"), "EmpresaPage");
 const Perfil = page(() => import("./pages/perfil"), "PerfilPage");
@@ -106,6 +107,10 @@ export function App() {
         <Storefront slug={storeSlug} />
       </Suspense>
     );
+  }
+
+  if (location === "/pagamento/retorno") {
+    return <Suspense fallback={<Spinner />}><PaymentReturn /></Suspense>;
   }
 
   if (location === "/admin" || location.startsWith("/admin/")) {
@@ -209,7 +214,7 @@ export function App() {
           <Route path="/auditoria" component={Auditoria} />
           <Route path="/convite" component={Invite} />
           <Route path="/entrar">
-            <Redirect to="/" />
+            <Redirect to={sessionStorage.getItem("rd.checkout-return")?.startsWith("/pagamento/retorno?") ? sessionStorage.getItem("rd.checkout-return")! : "/"} />
           </Route>
           <Route path="/verificar-email">
             <Redirect to="/" />

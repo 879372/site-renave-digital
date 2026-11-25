@@ -4,7 +4,7 @@ import { Check, CreditCard, ExternalLink, Receipt } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Badge, Button, buttonClass, Card, Empty, Modal, PageHeader, Spinner, Table } from "@/components/ui";
+import { Badge, Button, Card, Empty, Modal, PageHeader, Spinner, Table } from "@/components/ui";
 import { api, type Page } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { daysUntil, useBilling, type Invoice, type Plan, type Subscription } from "@/lib/billing";
@@ -49,6 +49,15 @@ export function PlanosPage() {
   const plans = useQuery({ queryKey: ["plans"], queryFn: () => api<Plan[]>("/billing/plans") });
   const invoices = useQuery({ queryKey: ["invoices", org], queryFn: () => api<Page<Invoice>>("/billing/invoices") });
 
+  const checkout = useMutation({
+    mutationFn: (id: string) => api<Invoice>(`/billing/invoices/${id}/checkout`, { body: {} }),
+    onSuccess: (invoice) => {
+      void qc.invalidateQueries({ queryKey: ["invoices", org] });
+      void qc.invalidateQueries({ queryKey: ["billing", org] });
+      if (invoice.payment_url) window.location.assign(invoice.payment_url);
+    },
+    onError: (e) => handleApiError(e),
+  });
   const change = useMutation({
     mutationFn: (p: Plan) => api<{ invoice: Invoice | null; subscription: Subscription }>("/billing/change-plan", { body: { plan: p.code, cycle } }),
     onSuccess: (r) => {
@@ -62,7 +71,7 @@ export function PlanosPage() {
       } else if (r.invoice && r.invoice.status === "paid") {
         toast.success("Plano alterado.");
       } else if (r.invoice) {
-        toast.success("Fatura gerada. Nossa equipe envia as instruções de pagamento.");
+        toast.success("Fatura gerada. Clique em Pagar para abrir o checkout InfinitePay.");
       } else if (r.subscription.scheduled_plan) {
         toast.success(`A troca para o plano ${r.subscription.scheduled_plan} acontece no fim do período pago.`);
       } else {
@@ -121,10 +130,10 @@ export function PlanosPage() {
             <span>
               Fatura {me.open_invoice.status === "overdue" ? "vencida" : "em aberto"}: <strong>{money(me.open_invoice.total_cents)}</strong>, vence em {date(me.open_invoice.due_date)}
             </span>
-            {me.open_invoice.payment_url && (
-              <a href={me.open_invoice.payment_url} target="_blank" rel="noopener noreferrer" className={buttonClass("mint", "sm", "ml-auto")}>
-                Pagar agora <ExternalLink className="size-4" />
-              </a>
+            {can("billing.manage") && (
+              <Button size="sm" className="ml-auto" loading={checkout.isPending} onClick={() => checkout.mutate(me.open_invoice!.id)}>
+                Pagar na InfinitePay <ExternalLink className="size-4" />
+              </Button>
             )}
           </div>
         )}
@@ -221,10 +230,8 @@ export function PlanosPage() {
                   <Badge tone={INVOICE_TONE[inv.status]}>{inv.status_display}</Badge>
                 </td>
                 <td className="px-5 py-3 text-right">
-                  {inv.payment_url && (inv.status === "open" || inv.status === "overdue") && (
-                    <a href={inv.payment_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand">
-                      Pagar
-                    </a>
+                  {can("billing.manage") && (inv.status === "open" || inv.status === "overdue") && (
+                    <Button size="sm" variant="ghost" loading={checkout.isPending} onClick={() => checkout.mutate(inv.id)}>Pagar</Button>
                   )}
                 </td>
               </tr>
@@ -265,7 +272,7 @@ function ConfirmBody({ plan, cycle, sub }: { plan: Plan; cycle: Cycle; sub: Subs
   return (
     <div className="space-y-2 text-sm text-muted">
       <p>
-        Vamos gerar uma fatura de <strong className="text-ink">{money(price)}</strong> ({cycle === "annual" ? "anual" : "mensal"}). Você paga por Pix, boleto ou cartão, e o plano
+        Vamos gerar uma fatura de <strong className="text-ink">{money(price)}</strong> ({cycle === "annual" ? "anual" : "mensal"}). Você paga por Pix ou cartão, e o plano
         é liberado assim que o pagamento for confirmado.
       </p>
       {paidPeriod && <p>O valor dos dias não usados do plano atual é descontado na fatura.</p>}

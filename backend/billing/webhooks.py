@@ -1,69 +1,70 @@
-"""Eventos de pagamento do Asaas. `externalReference` diz o que foi pago:
-`invoice:<uuid>` (fatura da assinatura) ou `topup:<uuid>` (recarga da carteira).
-"""
+"""Confirmação segura, compartilhada entre webhook e retorno autenticado."""
 
 import logging
 import uuid
 
-from wallet.models import TopUp
-from wallet.service import cancel_topup, confirm_topup
+from django.db import IntegrityError, transaction
+from django.utils import timezone
+
+from audit.service import record
+from integrations.http import ProviderError
+from integrations.infinitepay import InfinitePayClient
+from wallet.service import confirm_topup
 
 from . import service
-from .models import Invoice
+from .gateway import PROVIDER, _notify
+from .models import Checkout
 
 logger = logging.getLogger(__name__)
 
-PAID = {"PAYMENT_RECEIVED", "PAYMENT_CONFIRMED"}
-GONE = {"PAYMENT_DELETED"}
-OVERDUE = {"PAYMENT_OVERDUE"}
 
-
-def _target(reference: str):
-    kind, _, raw = (reference or "").partition(":")
-    try:
-        public_id = uuid.UUID(raw)
-    except ValueError:
+def find_checkout(reference):
+    if not isinstance(reference, str) or not reference.startswith("revenda-"):
         return None
-    if kind == "invoice":
-        return Invoice.objects.filter(public_id=public_id).first()
-    if kind == "topup":
-        return TopUp.objects.filter(public_id=public_id).first()
-    return None
+    try:
+        public_id = uuid.UUID(reference[8:])
+    except (ValueError, TypeError):
+        return None
+    return Checkout.objects.select_related("invoice__organization", "topup__organization").filter(public_id=public_id).first()
 
 
-def _same_payment(obj, payment: dict) -> bool:
-    ref = getattr(obj, "provider_payment_id", None) or getattr(obj, "provider_reference", "")
-    return not ref or ref == payment.get("id")
-
-
-def handle_asaas_event(event: str, payment: dict) -> None:
-    obj = _target(payment.get("externalReference", ""))
-    if obj is None:
-        logger.info("Evento Asaas %s sem referência conhecida", event)
-        return
-    if not _same_payment(obj, payment):
-        logger.warning("Evento Asaas %s com cobrança diferente da registrada", event)
-        return
-
-    if isinstance(obj, Invoice):
-        if event in PAID:
-            expected = obj.total_cents
-            received = round(float(payment.get("value", 0)) * 100)
-            if received < expected:
-                logger.error("Fatura %s paga com valor menor (%s < %s)", obj.public_id, received, expected)
-                return
-            service.mark_paid(obj)
-        elif event in OVERDUE:
-            service.mark_overdue(obj)
-        elif event in GONE:
-            service.cancel_invoice(obj)
-        return
-
-    if event in PAID:
-        received = round(float(payment.get("value", 0)) * 100)
-        if received < obj.amount_cents:
-            logger.error("Recarga %s paga com valor menor", obj.public_id)
-            return
-        confirm_topup(obj)
-    elif event in GONE | OVERDUE:
-        cancel_topup(obj)
+def confirm_checkout(reference, transaction_nsu, slug):
+    checkout = find_checkout(reference)
+    if checkout is None or not transaction_nsu or not slug:
+        return False
+    if checkout.paid_at:
+        return True
+    data = InfinitePayClient(checkout.organization).payment_check(checkout, transaction_nsu, slug)
+    if data.get("success") is not True or data.get("paid") is not True:
+        return False
+    if type(data.get("amount")) is not int or data["amount"] != checkout.amount_cents:
+        logger.warning("Checkout %s: valor divergente", checkout.public_id)
+        return False
+    paid_amount = data.get("paid_amount")
+    if type(paid_amount) is not int or paid_amount < checkout.amount_cents:
+        return False
+    try:
+        with transaction.atomic():
+            checkout = Checkout.objects.select_for_update().get(pk=checkout.pk)
+            if checkout.paid_at:
+                return True
+            checkout.transaction_nsu = transaction_nsu
+            checkout.slug = slug
+            checkout.paid_at = timezone.now()
+            checkout.save(update_fields=["transaction_nsu", "slug", "paid_at", "updated_at"])
+            obj = checkout.invoice if checkout.invoice_id else checkout.topup
+            expected = obj.total_cents if checkout.invoice_id else obj.amount_cents
+            if expected != checkout.amount_cents or obj.provider != PROVIDER:
+                raise ProviderError("Pedido alterado; confirmação exige revisão manual.")
+            if checkout.invoice_id:
+                service.mark_paid(obj)
+            elif obj.status == "pending":
+                confirm_topup(obj)
+            elif obj.status != "paid":
+                record("billing.paid_canceled_topup", organization=obj.organization, target=obj)
+            _notify(checkout, paid=True)
+    except IntegrityError:
+        # Identificador da transação já vinculado a outro checkout: nunca creditar de novo.
+        logger.warning("Checkout %s: transação já vinculada", checkout.public_id)
+        return False
+    return True

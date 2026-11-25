@@ -8,13 +8,13 @@ class IntegrationCall(models.Model):
         BUSCARS = "buscars", "BusCars"
         CARVEN = "carven", "Carven"
         GERANET = "geranet", "Geranet"
-        ASAAS = "asaas", "Asaas"
+        INFINITEPAY = "infinitepay", "InfinitePay"
         FIPE = "fipe", "Tabela FIPE"
         PLACA = "placa", "Consulta de placa"
         ZAPSIGN = "zapsign", "ZapSign"
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    provider = models.CharField(max_length=10, choices=Provider.choices, db_index=True)
+    provider = models.CharField(max_length=20, choices=Provider.choices, db_index=True)
     organization = models.ForeignKey("organizations.Organization", null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     method = models.CharField(max_length=8)
     path = models.CharField(max_length=255)

@@ -133,7 +133,7 @@ class Invoice(TimeStampedModel):
     target_cycle = models.CharField(max_length=10, choices=Subscription.Cycle.choices, blank=True)
     provider = models.CharField(max_length=20, blank=True)
     provider_payment_id = models.CharField(max_length=60, blank=True, db_index=True)
-    payment_url = models.URLField(blank=True)
+    payment_url = models.URLField(max_length=1000, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     canceled_at = models.DateTimeField(null=True, blank=True)
 
@@ -162,3 +162,37 @@ class InvoiceItem(models.Model):
 
     class Meta:
         ordering = ["id"]
+
+
+class Checkout(TimeStampedModel):
+    """Pedido local imutável do checkout; uma transação não liquida dois pedidos."""
+
+    invoice = models.OneToOneField(Invoice, null=True, blank=True, on_delete=models.PROTECT, related_name="checkout")
+    topup = models.OneToOneField("wallet.TopUp", null=True, blank=True, on_delete=models.PROTECT, related_name="checkout")
+    amount_cents = models.PositiveBigIntegerField()
+    handle = models.CharField(max_length=120)
+    url = models.URLField(max_length=1000, blank=True)
+    transaction_nsu = models.CharField(max_length=120, blank=True)
+    slug = models.CharField(max_length=120, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    link_emailed_at = models.DateTimeField(null=True, blank=True)
+    receipt_emailed_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def reference(self):
+        return f"revenda-{self.public_id.hex}"
+
+    @property
+    def organization(self):
+        return self.invoice.organization if self.invoice_id else self.topup.organization
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(models.Q(invoice__isnull=False, topup__isnull=True) | models.Q(invoice__isnull=True, topup__isnull=False)),
+                name="checkout_exactly_one_target",
+            ),
+            models.UniqueConstraint(
+                fields=["transaction_nsu"], condition=~models.Q(transaction_nsu=""), name="checkout_unique_transaction"
+            ),
+        ]

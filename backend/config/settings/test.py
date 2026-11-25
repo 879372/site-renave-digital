@@ -13,6 +13,7 @@ CARVEN = {**CARVEN, "CLIENT_ID": "cid", "CLIENT_SECRET": "csecret"}  # noqa: F40
 GERANET = {**GERANET, "API_KEY": "gn_test"}  # noqa: F405
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 STORAGES = {**STORAGES, "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}  # noqa: F405
-ASAAS = {**ASAAS, "API_KEY": "", "WEBHOOK_TOKEN": "asaas_whtoken"}  # noqa: F405
 PLACA_API = {**PLACA_API, "TOKEN": "placa_test"}  # noqa: F405
 ZAPSIGN = {**ZAPSIGN, "TOKEN": "", "WEBHOOK_TOKEN": "zs_whtoken"}  # noqa: F405
+
+INFINITEPAY = {**INFINITEPAY, "HANDLE": "", "API_KEY": ""}  # noqa: F405

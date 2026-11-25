@@ -7,6 +7,7 @@ router = SimpleRouter(trailing_slash=False)
 router.register("invoices", views.InvoiceViewSet, basename="invoices")
 
 urlpatterns = [
+    path("checkout/confirm", views.ConfirmCheckoutView.as_view()),
     path("plans", views.PlanListView.as_view()),
     path("me", views.BillingMeView.as_view()),
     path("change-plan", views.ChangePlanView.as_view()),

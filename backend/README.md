@@ -97,4 +97,4 @@ Os dois serviços usam o mesmo `Dockerfile`; o que muda é a configuração de c
 
 O app (Vercel, com `VITE_API_URL=https://api.revendadigital.kaibez.com.br`) chama a API direto nesse domínio. O cookie de sessão funciona porque `app.` e `api.` são o mesmo site (`kaibez.com.br`); o CORS libera `CORS_ALLOWED_ORIGINS` com credenciais.
 
-Webhooks para cadastrar nos provedores: `https://api.revendadigital.kaibez.com.br/api/hooks/consultas` (BusCars), `/api/hooks/asaas` (Asaas) e `/api/hooks/zapsign/<token>` (ZapSign).
+Webhooks: `https://api.revendadigital.kaibez.com.br/api/hooks/consultas` (BusCars), `/api/hooks/infinitepay` (InfinitePay, enviado na criação de cada link) e `/api/hooks/zapsign/<token>` (ZapSign).

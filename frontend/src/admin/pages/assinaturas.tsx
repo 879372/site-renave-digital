@@ -174,7 +174,7 @@ export function FaturasAdminPage() {
   });
   return (
     <>
-      <PageHeader title="Faturas" description="Mensalidades e consumo pós-pago. Pagamentos pelo Asaas são confirmados automaticamente." />
+      <PageHeader title="Faturas" description="Mensalidades e consumo pós-pago. Pagamentos pela InfinitePay são confirmados automaticamente." />
       <ResourceTable<any>
         endpoint="/invoices"
         searchPlaceholder="Empresa, CNPJ ou id da cobrança"

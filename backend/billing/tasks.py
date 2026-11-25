@@ -46,8 +46,18 @@ def run_daily():
     run()
 
 
-@shared_task
-def handle_asaas_event(event: str, payment: dict):
-    from .webhooks import handle_asaas_event as handle
+@shared_task(bind=True, max_retries=8, default_retry_delay=60, acks_late=True)
+def confirm_checkout_payment(self, reference, transaction_nsu, slug):
+    from .webhooks import confirm_checkout
 
-    handle(event, payment)
+    try:
+        confirmed = confirm_checkout(reference, transaction_nsu, slug)
+        if not confirmed:
+            # Pode haver atraso entre o aviso e a disponibilidade no payment_check.
+            raise self.retry(countdown=60)
+        return True
+    except ProviderError as exc:
+        if exc.retryable:
+            raise self.retry(exc=exc)
+        logger.warning("Checkout não pôde ser confirmado; revisão necessária")
+        return False

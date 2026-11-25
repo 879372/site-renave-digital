@@ -1,19 +1,16 @@
-"""Provedores de pagamento para recarga.
-
-Com `ASAAS_API_KEY` configurada, a recarga gera uma cobrança Pix no Asaas e o
-webhook (`/api/hooks/asaas`) confirma o crédito. Sem a chave, `ManualProvider`
-deixa a recarga pendente e o financeiro confirma pelo admin (com auditoria).
-"""
+"""Recarga por checkout InfinitePay ou confirmação manual quando não configurado."""
 
 from dataclasses import dataclass
 from datetime import timedelta
 
+from django.conf import settings
 from django.utils import timezone
 
 
 @dataclass
 class Charge:
     reference: str
+    payment_url: str = ""
     pix_copy_paste: str = ""
     pix_qr_base64: str = ""
     expires_at = None
@@ -22,41 +19,29 @@ class Charge:
 class ManualProvider:
     name = "manual"
 
-    def create_charge(self, topup) -> Charge:
+    def create_charge(self, topup):
         charge = Charge(reference=f"MAN-{topup.public_id.hex[:10].upper()}")
         charge.expires_at = timezone.now() + timedelta(days=2)
         return charge
 
 
-class AsaasProvider:
-    name = "asaas"
+class InfinitePayProvider:
+    name = "infinitepay"
 
-    def create_charge(self, topup) -> Charge:
-        from datetime import datetime
+    def create_charge(self, topup):
+        from billing.models import Checkout
+        from integrations.infinitepay import InfinitePayClient
 
-        from billing.gateway import ensure_customer
-        from integrations.asaas import AsaasClient
-
-        client = AsaasClient(topup.organization)
-        payment = client.create_payment(
-            customer=ensure_customer(topup.organization),
-            value_cents=topup.amount_cents,
-            due_date=(timezone.localdate() + timedelta(days=1)).isoformat(),
-            description="Recarga de créditos — REVENDA DIGITAL",
-            external_reference=f"topup:{topup.public_id}",
-            billing_type="PIX",
+        checkout, _ = Checkout.objects.get_or_create(
+            topup=topup, defaults={"amount_cents": topup.amount_cents, "handle": settings.INFINITEPAY["HANDLE"]}
         )
-        qr = client.pix_qr_code(payment["id"])
-        charge = Charge(reference=payment["id"], pix_copy_paste=qr.get("payload", ""), pix_qr_base64=qr.get("encodedImage", ""))
-        expires = qr.get("expirationDate")
-        try:
-            charge.expires_at = timezone.make_aware(datetime.fromisoformat(expires)) if expires else None
-        except ValueError:
-            charge.expires_at = None
-        return charge
+        if not checkout.url:
+            checkout.url = InfinitePayClient(topup.organization).create_link(checkout, "Recarga de créditos — Revenda Digital")
+            checkout.save(update_fields=["url", "updated_at"])
+        return Charge(reference=checkout.reference, payment_url=checkout.url)
 
 
 def get_provider():
     from billing.gateway import enabled
 
-    return AsaasProvider() if enabled() else ManualProvider()
+    return InfinitePayProvider() if enabled() else ManualProvider()

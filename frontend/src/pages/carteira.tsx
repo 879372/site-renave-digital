@@ -11,7 +11,7 @@ import { dateTime, maskMoney, money, parseMoney } from "@/lib/format";
 import { handleApiError } from "@/lib/forms";
 
 type Entry = { id: string; kind: string; kind_display: string; amount_cents: number; balance_after_cents: number; description: string; created_at: string };
-type TopUp = { id: string; amount_cents: number; status: string; status_display: string; provider_reference: string; pix_copy_paste: string; created_at: string };
+type TopUp = { id: string; amount_cents: number; status: string; status_display: string; provider_reference: string; payment_url: string; pix_copy_paste: string; created_at: string };
 
 const PRESETS = [10000, 25000, 50000, 100000];
 
@@ -38,6 +38,7 @@ export function CarteiraPage() {
     mutationFn: () => api<TopUp>("/wallet/topups", { body: { amount_cents: parseMoney(amount) } }),
     onSuccess: (t) => {
       qc.invalidateQueries({ queryKey: ["topups", org] });
+      if (t.payment_url) window.location.assign(t.payment_url);
       toast.success(`Recarga ${t.provider_reference} solicitada. O saldo é liberado após a confirmação do pagamento.`);
     },
     onError: (e) => handleApiError(e),
@@ -125,10 +126,10 @@ export function CarteiraPage() {
                     <p className="font-semibold">Aguardando pagamento</p>
                     {pending.map((t) => (
                       <p key={t.id} className="text-muted">
-                        {t.provider_reference} · {money(t.amount_cents)}
+                        {t.provider_reference} · {money(t.amount_cents)} {t.payment_url && <a className="font-semibold text-brand" href={t.payment_url}>Pagar na InfinitePay</a>}
                       </p>
                     ))}
-                    <p className="mt-2 text-xs text-muted">Envie o comprovante para a equipe pelo WhatsApp com o código da recarga.</p>
+                    <p className="mt-2 text-xs text-muted">Pague pelo link da recarga. O crédito é liberado após a confirmação. Recargas manuais exigem confirmação da equipe.</p>
                   </div>
                 )}
               </div>

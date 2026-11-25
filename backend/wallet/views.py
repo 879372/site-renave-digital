@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -63,13 +64,21 @@ class TopUpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retrie
         resolve_membership(self.request)
         return TopUp.objects.filter(organization=self.request.organization)
 
+    @transaction.atomic
     def perform_create(self, serializer):
         provider = get_provider()
         topup = serializer.save(organization=self.request.organization, requested_by=self.request.user, provider=provider.name)
-        charge = provider.create_charge(topup)
+        from core.exceptions import ProviderUnavailable
+        from integrations.http import ProviderError
+
+        try:
+            charge = provider.create_charge(topup)
+        except ProviderError as exc:
+            raise ProviderUnavailable("Não foi possível gerar o checkout da recarga. Tente novamente.") from exc
+        topup.payment_url = charge.payment_url
         topup.provider_reference = charge.reference
         topup.pix_copy_paste = charge.pix_copy_paste
         topup.pix_qr_base64 = charge.pix_qr_base64
         topup.expires_at = charge.expires_at
-        topup.save(update_fields=["provider_reference", "pix_copy_paste", "pix_qr_base64", "expires_at"])
+        topup.save(update_fields=["payment_url", "provider_reference", "pix_copy_paste", "pix_qr_base64", "expires_at"])
         record("wallet.topup_requested", request=self.request, target=topup, amount_cents=topup.amount_cents)

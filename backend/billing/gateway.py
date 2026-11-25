@@ -1,69 +1,70 @@
-"""Ponte entre faturas/recargas e o gateway de pagamento.
-
-Sem `ASAAS_API_KEY`, nada é enviado: a fatura fica sem link e o financeiro
-confirma o pagamento pelo backoffice (com auditoria).
-"""
+"""Cobranças por checkout InfinitePay, com e-mails transacionais pelo Resend."""
 
 from django.conf import settings
-from django.db import IntegrityError
+from django.db import transaction
+from django.utils import timezone
 
-from .models import GatewayCustomer, Invoice
+from core.email import send
+from integrations.infinitepay import InfinitePayClient
 
-ASAAS = "asaas"
+from .models import Checkout, Invoice
+
+PROVIDER = "infinitepay"
 
 
-def enabled() -> bool:
-    return bool(settings.ASAAS.get("API_KEY"))
+def enabled():
+    # A handle também é necessária para conferir a conta recebedora no payment_check.
+    return bool(settings.INFINITEPAY["HANDLE"])
 
 
-def ensure_customer(organization) -> str:
-    from integrations.asaas import AsaasClient
-
-    existing = GatewayCustomer.objects.filter(organization=organization, provider=ASAAS).first()
-    if existing:
-        return existing.customer_id
-    data = AsaasClient(organization).create_customer(
-        name=organization.legal_name,
-        cpf_cnpj=organization.cnpj,
-        email=organization.email,
-        phone=organization.phone,
-        external_reference=f"org:{organization.public_id}",
+def _notify(checkout, *, paid=False):
+    org = checkout.organization
+    recipients = (
+        [org.email]
+        if org.email
+        else list(org.memberships.filter(role="owner", is_active=True, user__is_active=True).values_list("user__email", flat=True))
     )
-    try:
-        GatewayCustomer.objects.create(organization=organization, provider=ASAAS, customer_id=data["id"])
-    except IntegrityError:
-        return GatewayCustomer.objects.get(organization=organization, provider=ASAAS).customer_id
-    return data["id"]
+    recipients = [email for email in recipients if email and not email.endswith(".invalid")]
+    field = "receipt_emailed_at" if paid else "link_emailed_at"
+    if getattr(checkout, field) or not recipients:
+        return
+    amount = f"R$ {checkout.amount_cents / 100:.2f}".replace(".", ",")
+    if paid:
+        subject = "Pagamento confirmado — Revenda Digital"
+        body = f"Olá, {org}!\n\nConfirmamos o pagamento de {amount}.\nReferência: {checkout.reference}.\nAcompanhe sua assinatura na plataforma."
+    else:
+        invoice = checkout.invoice
+        subject = "Sua fatura está disponível — Revenda Digital"
+        body = (
+            f"Olá, {org}!\n\nSua fatura de {amount} vence em {invoice.due_date:%d/%m/%Y}.\n"
+            f"Pague por Pix ou cartão no checkout InfinitePay:\n{checkout.url}\n\n"
+            "O plano é liberado após a confirmação do pagamento. A renovação não debita seu cartão automaticamente."
+        )
+    send(subject, body, list(dict.fromkeys(recipients)))
+    setattr(checkout, field, timezone.now())
+    checkout.save(update_fields=[field, "updated_at"])
 
 
-def invoice_description(invoice: Invoice) -> str:
-    lines = "; ".join(f"{item.description}: R$ {item.total_cents / 100:.2f}".replace(".", ",") for item in invoice.items.all())
-    return f"Revenda Digital — {lines}"
-
-
-def push_invoice(invoice: Invoice) -> Invoice:
-    """Cria a cobrança avulsa no gateway (o cliente escolhe Pix, boleto ou cartão no link)."""
-    from integrations.asaas import AsaasClient
-
-    if not enabled() or invoice.provider_payment_id or invoice.status != Invoice.Status.OPEN or invoice.total_cents <= 0:
+@transaction.atomic
+def push_invoice(invoice):
+    invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+    if not enabled() or invoice.status not in (Invoice.Status.OPEN, Invoice.Status.OVERDUE) or invoice.total_cents <= 0:
         return invoice
-    customer = ensure_customer(invoice.organization)
-    data = AsaasClient(invoice.organization).create_payment(
-        customer=customer,
-        value_cents=invoice.total_cents,
-        due_date=invoice.due_date.isoformat(),
-        description=invoice_description(invoice),
-        external_reference=f"invoice:{invoice.public_id}",
+    checkout, _ = Checkout.objects.get_or_create(
+        invoice=invoice, defaults={"amount_cents": invoice.total_cents, "handle": settings.INFINITEPAY["HANDLE"]}
     )
-    invoice.provider = ASAAS
-    invoice.provider_payment_id = data["id"]
-    invoice.payment_url = data.get("invoiceUrl", "")
+    if not checkout.url:
+        checkout.url = InfinitePayClient(invoice.organization).create_link(checkout, "Revenda Digital — assinatura e consumo")
+        checkout.save(update_fields=["url", "updated_at"])
+    invoice.provider = PROVIDER
+    invoice.provider_payment_id = checkout.reference
+    invoice.payment_url = checkout.url
     invoice.save(update_fields=["provider", "provider_payment_id", "payment_url", "updated_at"])
+    _notify(checkout)
     return invoice
 
 
-def cancel_payment(invoice: Invoice) -> None:
-    from integrations.asaas import AsaasClient
-
-    if enabled() and invoice.provider == ASAAS and invoice.provider_payment_id:
-        AsaasClient(invoice.organization).delete_payment(invoice.provider_payment_id)
+def cancel_payment(invoice):
+    # A InfinitePay não oferece cancelamento de links. Pagamentos tardios ficam
+    # registrados e não reativam planos de faturas canceladas (billing.service).
+    return None

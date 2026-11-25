@@ -354,11 +354,12 @@ ZAPSIGN = {
 STOREFRONT_DOMAIN = env("STOREFRONT_DOMAIN", "revendadigital.kaibez.com.br")
 STOREFRONT_BASE_URL = env("STOREFRONT_BASE_URL", "").rstrip("/")
 
-ASAAS = {
-    "BASE_URL": env("ASAAS_BASE_URL", "https://api-sandbox.asaas.com/v3"),
-    "API_KEY": env("ASAAS_API_KEY"),
-    "WEBHOOK_TOKEN": env("ASAAS_WEBHOOK_TOKEN"),
-    "TIMEOUT": float(env("ASAAS_TIMEOUT", "30")),
+INFINITEPAY = {
+    "BASE_URL": env("INFINITEPAY_BASE_URL", "https://api.checkout.infinitepay.io"),
+    "HANDLE": env("INFINITEPAY_HANDLE", "").strip().lstrip("$"),
+    "API_KEY": env("INFINITEPAY_API_KEY", ""),
+    "TIMEOUT": float(env("INFINITEPAY_TIMEOUT", "20")),
+    "FRONTEND_URL": env("INFINITEPAY_FRONTEND_URL", "https://app.revendadigital.kaibez.com.br").rstrip("/"),
 }
 
 PUBLIC_API_URL = env("PUBLIC_API_URL", "http://localhost:8000")

@@ -72,7 +72,7 @@ O **Despachante Digital é outro sistema**, sem relação com este: não há int
 **Objetivo:** a plataforma sabe o plano de cada empresa e cobra a mensalidade.
 
 - `billing`: `Plan`, `PlanFeature` (recurso ou limite), `Subscription` (status: trial, active, past_due, canceled; ciclo mensal ou anual), `Invoice` e `InvoiceItem` (mensalidade, RENAVE do mês, loja extra).
-- Gateway com assinatura recorrente, Pix, boleto e cartão. **Asaas**. A interface `PaymentProvider` de `wallet/payments.py` passa a cobrir também a assinatura.
+- Gateway com checkout por ciclo, Pix e cartão. **InfinitePay**. A interface `PaymentProvider` de `wallet/payments.py` passa a cobrir também a assinatura.
 - Webhook do gateway: pagamento confirmado, atrasado, cancelado.
 - `Wallet.credit_limit_cents` e o fechamento mensal (tarefa no Celery beat).
 - Teste reverso de 14 dias no cadastro da empresa revenda.
@@ -83,11 +83,11 @@ O **Despachante Digital é outro sistema**, sem relação com este: não há int
 **Pronto quando:** a loja escolhe um plano, paga pelo gateway em homologação, recebe os recursos do plano, e o RENAVE do mês aparece na fatura seguinte.
 
 **Como ficou:**
-- Uma fatura por mês gerada pela plataforma (mensalidade + consumo) e enviada ao Asaas como cobrança avulsa (`billingType=UNDEFINED`): o lojista escolhe Pix, boleto ou cartão no link. Não usamos a assinatura recorrente do Asaas, porque o valor muda com o consumo.
-- Sem `ASAAS_API_KEY`, faturas e recargas ficam para confirmação manual no backoffice.
+- Uma fatura por mês gerada pela plataforma (mensalidade + consumo) e enviada ao InfinitePay como checkout avulso: o lojista escolhe Pix ou cartão no link. A plataforma controla a renovação mensal; não há débito automático no cartão.
+- Sem `INFINITEPAY_HANDLE`, faturas e recargas ficam para confirmação manual no backoffice.
 - Lojas que já existiam ganham o teste de 14 dias na primeira vez que o sistema consulta o plano delas.
 - NF-e sai sem cobrança por nota para quem tem o recurso no plano. Cancelar e corrigir nota continua liberado mesmo depois de descer de plano.
-- Falta: validar no sandbox do Asaas com chave real e cadastrar o webhook no painel (`/api/hooks/asaas`).
+- Confirmação: o webhook apenas avisa; `/payment_check` valida conta, pedido e valor. A InfinitePay não tem sandbox; testes automatizados usam respostas simuladas.
 
 ### Fase 1 — MVP (lançar Grátis e Essencial) ✅ implementada
 
@@ -146,7 +146,7 @@ Precisam de credenciais reais para funcionar em produção:
 | Consulta de placa (API PLACAS / wdapi2) | `PLACA_API_TOKEN` | cadastro manual ou pela tabela FIPE (grátis) |
 | Fotos e documentos (Cloudflare R2) | `R2_*` | arquivos no disco do servidor |
 | Assinatura eletrônica (ZapSign) | `ZAPSIGN_API_TOKEN`, `ZAPSIGN_WEBHOOK_TOKEN` | contrato impresso / PDF pelo navegador |
-| Pagamentos (Asaas) | `ASAAS_*` | confirmação manual no backoffice |
+| Pagamentos (InfinitePay) | `INFINITEPAY_*` | confirmação manual no backoffice |
 | Site das lojas | DNS curinga `*.revendadigital.kaibez.com.br` apontando para o app (Vercel) | vitrine em `/loja/<slug>` |
 
 Decisões e limites conhecidos:
@@ -187,7 +187,7 @@ Fonte Inter, números tabulares em tabelas, títulos semibold, botões de 40 px,
 | Item | Decisão |
 |---|---|
 | Custo do RENAVE | R$ 19,90 na Carven, **já com a taxa do Serpro**. Preço de venda: **R$ 30,00** por entrada ou saída |
-| Gateway de pagamento | **Asaas** (assinatura recorrente, Pix, boleto, cartão) |
+| Gateway de pagamento | **InfinitePay** (checkout por ciclo, Pix e cartão) |
 | Fotos | **Cloudflare R2** via `django-storages` (API S3) |
 | Domínio | **revendadigital.kaibez.com.br** |
 | Site das lojas | **Subdomínio** `<loja>.revendadigital.kaibez.com.br` (DNS curinga + certificado curinga) |

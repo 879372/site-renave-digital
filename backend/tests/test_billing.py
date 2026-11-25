@@ -3,7 +3,6 @@ from datetime import date, timedelta
 import pytest
 from django.utils import timezone
 from freezegun import freeze_time
-from rest_framework.test import APIClient
 
 from billing import entitlements, service
 from billing.models import Invoice, InvoiceItem, Plan, Subscription
@@ -14,8 +13,6 @@ from wallet.models import LedgerEntry, ServicePrice
 
 from .conftest import OTHER_CNPJ
 from .test_backoffice import login
-
-WEBHOOK = "/api/hooks/asaas"
 
 
 def plan(code):
@@ -248,43 +245,6 @@ def test_gratis_nao_convida_usuarios(api, org):
     assert r.status_code == 402 and r.json()["error"]["code"] == "plan_limit"
 
 
-# --- webhook ------------------------------------------------------------------------------------
-
-
-def _event(inv, event="PAYMENT_RECEIVED", value=None, eid="evt_1"):
-    return {
-        "id": eid,
-        "event": event,
-        "payment": {"id": "pay_1", "externalReference": f"invoice:{inv.public_id}", "value": value or inv.total_cents / 100},
-    }
-
-
-def test_webhook_exige_token(org):
-    entitlements.get_subscription(org)
-    inv = service.change_plan(org, plan("essencial"), "monthly")
-    c = APIClient()
-    assert c.post(WEBHOOK, _event(inv), format="json", HTTP_ASAAS_ACCESS_TOKEN="errado").status_code == 401
-    assert c.post(WEBHOOK, _event(inv), format="json").status_code == 401
-
-
-def test_webhook_pagamento_ativa_plano_e_deduplica(org):
-    entitlements.get_subscription(org)
-    inv = service.change_plan(org, plan("essencial"), "monthly")
-    c = APIClient()
-    for _ in range(2):
-        r = c.post(WEBHOOK, _event(inv), format="json", HTTP_ASAAS_ACCESS_TOKEN="asaas_whtoken")
-        assert r.status_code == 200
-    assert sub_of(org).plan.code == "essencial"
-
-
-def test_webhook_valor_menor_nao_ativa(org):
-    entitlements.get_subscription(org)
-    inv = service.change_plan(org, plan("essencial"), "monthly")
-    APIClient().post(WEBHOOK, _event(inv, value=1.0), format="json", HTTP_ASAAS_ACCESS_TOKEN="asaas_whtoken")
-    inv.refresh_from_db()
-    assert inv.status == Invoice.Status.OPEN
-
-
 # --- backoffice ---------------------------------------------------------------------------------
 
 
@@ -315,58 +275,3 @@ def test_backoffice_concede_plano_e_confirma_fatura(staff, org):
 def test_add_months_fim_de_mes():
     assert service.add_months(date(2026, 1, 31), 1) == date(2026, 2, 28)
     assert service.add_months(date(2026, 12, 15), 1) == date(2027, 1, 15)
-
-
-# --- gateway Asaas -------------------------------------------------------------------------------
-
-
-@pytest.fixture
-def asaas_on(settings):
-    settings.ASAAS = {**settings.ASAAS, "API_KEY": "aact_test", "BASE_URL": "https://asaas.test/v3"}
-
-
-def test_fatura_vira_cobranca_no_asaas(org, asaas_on, django_capture_on_commit_callbacks):
-    import respx
-    from httpx import Response
-
-    with respx.mock(assert_all_called=True) as mock:
-        cust = mock.post("https://asaas.test/v3/customers").mock(return_value=Response(200, json={"id": "cus_1"}))
-        pay_route = mock.post("https://asaas.test/v3/payments").mock(
-            return_value=Response(200, json={"id": "pay_9", "invoiceUrl": "https://asaas.test/i/pay_9"})
-        )
-        entitlements.get_subscription(org)
-        with django_capture_on_commit_callbacks(execute=True):
-            inv = service.change_plan(org, plan("essencial"), "monthly")
-    inv.refresh_from_db()
-    assert inv.provider_payment_id == "pay_9" and inv.payment_url == "https://asaas.test/i/pay_9"
-    import json
-
-    body = json.loads(pay_route.calls[0].request.content)
-    assert body["value"] == 99.9 and body["billingType"] == "UNDEFINED" and body["externalReference"] == f"invoice:{inv.public_id}"
-    assert cust.calls[0].request.headers["access_token"] == "aact_test"
-
-
-def test_recarga_pix_pelo_asaas(api, org, asaas_on):
-    import respx
-    from httpx import Response
-
-    with respx.mock() as mock:
-        mock.post("https://asaas.test/v3/customers").mock(return_value=Response(200, json={"id": "cus_1"}))
-        mock.post("https://asaas.test/v3/payments").mock(return_value=Response(200, json={"id": "pay_7"}))
-        mock.get("https://asaas.test/v3/payments/pay_7/pixQrCode").mock(
-            return_value=Response(200, json={"payload": "000201PIX", "encodedImage": "iVBOR", "expirationDate": "2026-11-24 23:59:59"})
-        )
-        r = api.post("/api/wallet/topups", {"amount_cents": 5000}, format="json")
-    assert r.status_code == 201, r.json()
-    assert r.json()["pix_copy_paste"] == "000201PIX" and r.json()["provider"] == "asaas"
-
-    from wallet.models import TopUp
-
-    topup = TopUp.objects.get()
-    event = {
-        "id": "evt_t",
-        "event": "PAYMENT_RECEIVED",
-        "payment": {"id": "pay_7", "externalReference": f"topup:{topup.public_id}", "value": 50.0},
-    }
-    APIClient().post(WEBHOOK, event, format="json", HTTP_ASAAS_ACCESS_TOKEN="asaas_whtoken")
-    assert wallet.get_wallet(org).balance_cents == 5000

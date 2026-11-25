@@ -38,6 +38,7 @@ class TopUpSerializer(serializers.ModelSerializer):
             "status_display",
             "provider",
             "provider_reference",
+            "payment_url",
             "pix_copy_paste",
             "pix_qr_base64",
             "expires_at",

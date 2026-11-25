@@ -82,6 +82,7 @@ class TopUp(TimeStampedModel):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING, db_index=True)
     provider = models.CharField(max_length=30, default="manual")
     provider_reference = models.CharField(max_length=120, blank=True, db_index=True)
+    payment_url = models.URLField(max_length=1000, blank=True)
     pix_copy_paste = models.TextField(blank=True)
     pix_qr_base64 = models.TextField(blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
