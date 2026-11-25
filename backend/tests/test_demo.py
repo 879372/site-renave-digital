@@ -67,3 +67,84 @@ def test_demo_storefront_uses_configured_public_path(user, settings):
     assert response.data["url"] == "https://app.revendadigital.kaibez.com.br/loja/revenda-demonstracao"
     assert response.data["feed_url"]
     assert client.put("/api/site/", {"title": org.trade_name}, format="json").status_code == 200
+
+
+@pytest.mark.django_db
+def test_complete_demo_fills_both_stores_without_external_calls_or_duplicates(user, settings, tmp_path):
+    from rest_framework.test import APIClient
+
+    from financeiro.models import Lancamento
+    from wallet.service import get_wallet
+
+    settings.MEDIA_ROOT = tmp_path
+    call_command("seed_demo", owner_email=user.email, no_images=True, stdout=StringIO())
+    with (
+        patch("integrations.http.BaseClient.request", side_effect=AssertionError("Não chamar provedor")),
+        patch("core.email._deliver.apply_async") as email,
+    ):
+        call_command("complete_demo", owner_email=user.email, stdout=StringIO())
+        orgs = Organization.objects.filter(cnpj__in=["00000000000000", "00000000000001"])
+        before = {}
+        for org in orgs:
+            assert org.vehicles.count() >= 15
+            assert not org.vehicles.filter(photos__isnull=True).exists()
+            assert org.vendas.filter(status="fechada").count() >= 6
+            assert org.garantias.count() >= 6
+            assert org.ocorrencias.count() >= 4
+            assert org.pessoas.count() >= 10
+            assert org.leads.count() >= 12
+            assert org.fichas.count() >= 4
+            assert org.documentos.count() >= 6
+            assert org.clients.count() == 2
+            assert org.certificates.filter(is_active=False).exists()
+            assert org.site.feed_token
+            assert org.notas.filter(ambiente="2", status="error", authorized_at__isnull=True).count() == 3
+            assert org.stock.filter(id_estoque__isnull=True, state="NEGADO").count() == 3
+            assert org.consultas.count() == 1
+            assert get_wallet(org).balance_cents == 50000
+            assert org.lancamentos.filter(origin="comissao").exists()
+            assert org.vehicles.filter(documents__isnull=False).exists()
+            client = APIClient()
+            client.force_authenticate(user)
+            client.credentials(HTTP_X_ORGANIZATION=str(org.public_id))
+            paths = [
+                "estoque/veiculos",
+                "estoque/avaliacoes",
+                "vendas/",
+                "crm/leads",
+                "crm/tarefas",
+                "pessoas/",
+                "financiamento/fichas",
+                "posvenda/garantias",
+                "posvenda/ocorrencias",
+                "financeiro/resumo",
+                "financeiro/dre",
+                "financeiro/fluxo",
+                "vendas/comissoes",
+                "contratos/modelos",
+                "contratos/documentos",
+                "painel/dashboard",
+                "painel/relatorios?tipo=estoque",
+                "site/",
+                "fiscal/notas",
+                "renave/stock",
+                "comunicacao-venda/",
+                "consultas/",
+                "wallet/",
+                "billing/me",
+            ]
+            for path in paths:
+                r = client.get("/api/" + path)
+                assert r.status_code == 200, (path, r.status_code)
+            assert client.post("/api/billing/change-plan", {}, format="json").status_code == 403
+            assert client.post("/api/wallet/topups", {"amount_cents": 2000}, format="json").status_code == 403
+            assert client.post("/api/fiscal/notas", {}, format="json").status_code == 403
+            assert client.put("/api/site/", {"title": str(org)}, format="json").status_code == 200
+            before[org.pk] = (org.vehicles.count(), org.lancamentos.count(), org.documentos.count(), org.invoices.count())
+        call_command("complete_demo", owner_email=user.email, stdout=StringIO())
+        for org in orgs:
+            assert before[org.pk] == (org.vehicles.count(), org.lancamentos.count(), org.documentos.count(), org.invoices.count())
+        run_daily()
+        assert not Invoice.objects.filter(provider="infinitepay").exists()
+        assert not Lancamento.objects.filter(organization__cnpj__in=["00000000000000", "00000000000001"], amount_cents__lte=0).exists()
+        email.assert_not_called()

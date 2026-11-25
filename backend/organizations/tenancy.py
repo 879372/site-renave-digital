@@ -60,6 +60,16 @@ class OrganizationPermission(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         membership = resolve_membership(request)
+        if membership.organization.is_demo and request.method not in permissions.SAFE_METHODS:
+            module = view.__class__.__module__.split(".")[0]
+            external = module in {"renave", "comunicacao", "consultas", "billing", "vault"}
+            external |= module == "fiscal" and view.__class__.__name__ == "NotaViewSet"
+            external |= module == "wallet" and getattr(view, "action", "") == "create"
+            external |= module == "contratos" and getattr(view, "action", "") == "sign"
+            if external:
+                raise PermissionDenied(
+                    "Loja demonstrativa: pagamentos, assinaturas e operações externas estão desativados. Os exemplos são locais e fictícios."
+                )
         perm = self._required(request, view)
         if not membership.has_perm(perm):
             raise PermissionDenied("Seu perfil não tem permissão para esta ação.")

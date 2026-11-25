@@ -42,6 +42,10 @@ class Organization(TimeStampedModel):
     class Meta:
         verbose_name = "empresa"
 
+    @property
+    def is_demo(self):
+        return self.cnpj in {"00000000000000", "00000000000001"}
+
     def __str__(self):
         return self.trade_name or self.legal_name
 
