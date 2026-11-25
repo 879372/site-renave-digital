@@ -1,5 +1,6 @@
 """Checkout InfinitePay: webhook é apenas aviso; pagamento sempre conferido na API."""
 
+import re
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -44,6 +45,16 @@ class InfinitePayClient(BaseClient):
             "redirect_url": f"{cfg['FRONTEND_URL']}/pagamento/retorno?order_nsu={checkout.reference}",
             "webhook_url": f"{settings.PUBLIC_API_URL}/api/hooks/infinitepay",
         }
+        company = checkout.organization
+        customer = {"name": (company.legal_name or company.trade_name).strip()}
+        if company.email.strip():
+            customer["email"] = company.email.strip()
+        phone = re.sub(r"\D", "", company.phone)
+        if len(phone) in (10, 11):
+            customer["phone_number"] = f"+55{phone}"
+        elif len(phone) in (12, 13) and phone.startswith("55"):
+            customer["phone_number"] = f"+{phone}"
+        payload["customer"] = {key: value for key, value in customer.items() if value}
         if cfg["API_KEY"]:
             payload["options"] = {"single_payment": True, "payment_methods_enabled": ["credit_card", "pix"]}
         data = self.post("/links", payload)

@@ -204,3 +204,38 @@ def test_gateway_rejects_external_redirect(org, checkout_on):
             gateway.push_invoice(inv)
     inv.refresh_from_db()
     assert not inv.payment_url
+
+
+@pytest.mark.parametrize(
+    "phone,expected",
+    [("(84) 99999-1234", "+5584999991234"), ("+55 84 99999-1234", "+5584999991234"), ("(84) 3333-1234", "+558433331234"), ("", None)],
+)
+def test_checkout_prefills_only_paying_company_contact(org, checkout_on, phone, expected):
+    org.legal_name = "Razão Social da Loja LTDA"
+    org.trade_name = "Nome Fantasia"
+    org.email = "financeiro@loja.test"
+    org.phone = phone
+    org.save()
+    with respx.mock as mock:
+        route = mock.post(BASE + "/links").mock(return_value=Response(200, json={"url": URL}))
+        entitlements.get_subscription(org)
+        inv = service.change_plan(org, Plan.objects.get(code="essencial"), "monthly")
+        gateway.push_invoice(inv)
+        customer = json.loads(route.calls[0].request.content)["customer"]
+    assert customer["name"] == org.legal_name
+    assert customer["email"] == org.email
+    assert customer.get("phone_number") == expected
+    from integrations.models import IntegrationCall
+
+    assert "customer" not in IntegrationCall.objects.filter(provider="infinitepay").first().request_body
+
+
+def test_topup_prefills_company_without_using_operator_or_other_store(api, org, checkout_on):
+    org.email = ""
+    org.phone = ""
+    org.save()
+    with respx.mock as mock:
+        route = mock.post(BASE + "/links").mock(return_value=Response(200, json={"url": URL}))
+        assert api.post("/api/wallet/topups", {"amount_cents": 5000}, format="json").status_code == 201
+        customer = json.loads(route.calls[0].request.content)["customer"]
+    assert customer == {"name": org.legal_name}
